@@ -23,6 +23,9 @@ jobs:
       - name: Generate package-lock.json
         run: npm install --package-lock-only
 
+      - name: Show git status
+        run: git status --short
+
       - name: Commit and push package-lock.json
         run: |
           if git diff --quiet -- package-lock.json; then
