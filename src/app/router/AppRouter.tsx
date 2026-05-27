@@ -10,6 +10,7 @@ import { AnalysisDimensionsPage } from '../../pages/AnalysisDimensionsPage'
 import { PLByDimensionPage } from '../../pages/PLByDimensionPage'
 import { AuthPage } from '../../pages/AuthPage'
 import { PLVariancePage } from '../../pages/PLVariancePage'
+import { PLVarianceDriversPage } from '../../pages/PLVarianceDriversPage'
 import { RequireAuth } from '../../features/auth/RequireAuth'
 
 export function AppRouter() {
@@ -29,6 +30,7 @@ export function AppRouter() {
         <Route path="/dimensions" element={<RequireAuth><AnalysisDimensionsPage /></RequireAuth>} />
         <Route path="/pl/by-dimension" element={<RequireAuth><PLByDimensionPage /></RequireAuth>} />
         <Route path="/pl/variance" element={<RequireAuth><PLVariancePage /></RequireAuth>} />
+        <Route path="/pl/variance-drivers" element={<RequireAuth><PLVarianceDriversPage /></RequireAuth>} />
       </Routes>
     </AppShell>
   )
