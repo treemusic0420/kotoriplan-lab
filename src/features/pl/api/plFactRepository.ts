@@ -1,6 +1,6 @@
 import { getSupabaseClient } from '../../../infra/supabase/client'
 import { PL_ACCOUNT_BY_KEY, STANDARD_PL_ACCOUNTS } from '../model/plAccountDefinitions'
-import type { PlByDimensionFilter, SamplePlFilter } from '../model/types'
+import type { CompareType, PlByDimensionFilter, PlVarianceFilter, SamplePlFilter } from '../model/types'
 import { buildSampleAccountAmounts, orderedRows, sampleDimensions } from '../sample/samplePlData'
 
 const req = async () => {
@@ -221,6 +221,74 @@ export function orderedAccountKeys() {
 
 export function accountMeta(key: string) {
   return PL_ACCOUNT_BY_KEY.get(key)
+}
+
+function versionsForCompare(compareType: CompareType) {
+  if (compareType === 'actual_vs_forecast') return { compareVersion: 'actual', baseVersion: 'forecast', compareLabel: 'Actual', baseLabel: 'Forecast' }
+  if (compareType === 'forecast_vs_budget') return { compareVersion: 'forecast', baseVersion: 'budget', compareLabel: 'Forecast', baseLabel: 'Budget' }
+  return { compareVersion: 'actual', baseVersion: 'budget', compareLabel: 'Actual', baseLabel: 'Budget' }
+}
+
+export async function fetchPlVarianceRows(filters: PlVarianceFilter) {
+  const u = await req()
+  const { compareVersion, baseVersion } = versionsForCompare(filters.compareType)
+  let q: any = getSupabaseClient()
+    .from('pl_facts')
+    .select('id,account_key,amount,version')
+    .eq('owner_user_id', u)
+    .eq('is_sample', true)
+    .eq('organization_key', filters.organizationKey)
+    .eq('target_month', `${filters.year}-${String(filters.month).padStart(2, '0')}-01`)
+    .in('version', [compareVersion, baseVersion])
+  if (filters.analysisDimensionId) {
+    let linkQuery: any = getSupabaseClient()
+      .from('pl_fact_dimension_values')
+      .select('pl_fact_id')
+      .eq('owner_user_id', u)
+      .eq('is_sample', true)
+      .eq('analysis_dimension_id', filters.analysisDimensionId)
+    if (filters.analysisDimensionValueId) linkQuery = linkQuery.eq('analysis_dimension_value_id', filters.analysisDimensionValueId)
+    const { data: links } = await linkQuery
+    const ids = Array.from(new Set((links ?? []).map((x: any) => x.pl_fact_id)))
+    if (ids.length === 0) return []
+    q = q.in('id', ids)
+  }
+  const { data, error } = await q
+  if (error) throw new Error(`Failed to load PL variance: ${error.message}`)
+  return data ?? []
+}
+
+export async function aggregatePlVariance(filters: PlVarianceFilter) {
+  const rows = await fetchPlVarianceRows(filters)
+  const { compareVersion, baseVersion, compareLabel, baseLabel } = versionsForCompare(filters.compareType)
+  const byAccount = new Map<string, { compareAmount: number; baseAmount: number }>()
+  for (const accountKey of orderedAccountKeys()) byAccount.set(accountKey, { compareAmount: 0, baseAmount: 0 })
+  rows.forEach((r: any) => {
+    const bucket = byAccount.get(r.account_key) ?? { compareAmount: 0, baseAmount: 0 }
+    const amount = Number(r.amount ?? 0)
+    if (r.version === compareVersion) bucket.compareAmount += amount
+    if (r.version === baseVersion) bucket.baseAmount += amount
+    byAccount.set(r.account_key, bucket)
+  })
+  const hasCompare = rows.some((r: any) => r.version === compareVersion)
+  const hasBase = rows.some((r: any) => r.version === baseVersion)
+  const lineItems = orderedAccountKeys().map((accountKey) => {
+    const meta = accountMeta(accountKey)
+    const amounts = byAccount.get(accountKey) ?? { compareAmount: 0, baseAmount: 0 }
+    const variance = amounts.compareAmount - amounts.baseAmount
+    const varianceRate = amounts.baseAmount !== 0 ? variance / Math.abs(amounts.baseAmount) : amounts.compareAmount === 0 ? 0 : null
+    return {
+      accountKey,
+      accountName: meta?.accountName ?? accountKey,
+      compareAmount: amounts.compareAmount,
+      baseAmount: amounts.baseAmount,
+      variance,
+      varianceRate,
+      isTotal: Boolean(meta?.isTotal),
+      isProfitLine: Boolean(meta?.isProfitLine)
+    }
+  })
+  return { lineItems, compareLabel, baseLabel, hasCompare, hasBase, rawCount: rows.length }
 }
 
 

@@ -8,8 +8,9 @@ const links = [
   { to: '/compare', label: 'Scenario Compare' },
   { to: '/tags', label: 'Scenario Labels' },
   { to: '/dimensions', label: 'Analysis Dimensions' },
-  { to: '/pl/by-dimension', label: 'PL by Dimension' },
   { to: '/pl', label: 'PL View' },
+  { to: '/pl/by-dimension', label: 'PL by Dimension' },
+  { to: '/pl/variance', label: 'PL Variance' },
 ]
 
 export function AppShell({ children }: { children: ReactNode }) {
