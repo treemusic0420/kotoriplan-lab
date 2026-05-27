@@ -3,6 +3,7 @@ import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAx
 import { calculateCvp } from '../domain/cvp/formulas'
 import { fetchScenariosForCompare } from '../features/scenario/api/scenarioRepository'
 import type { Scenario } from '../features/scenario/model/types'
+import { WhenToUseCard } from '../shared/ui/WhenToUseCard'
 
 const c = (n: number | null) =>
   n === null || Number.isNaN(n)
@@ -95,6 +96,11 @@ export function ScenarioComparePage() {
 
       <div className='mt-4 rounded-lg border bg-slate-50 p-4'>
         <p className='text-sm font-medium text-slate-800'>Select 2 to 3 scenarios to compare</p>
+    <WhenToUseCard bullets={[
+      'Use this view to compare two or three scenarios side by side.',
+      'In practice, FP&A teams compare different planning cases to understand which assumptions create the biggest profit impact.',
+      'This is useful when management wants to choose between multiple options, such as base case, upside case, and downside case.'
+    ]} note='Typical use cases: management decision support, budget scenario comparison, and forecast sensitivity analysis.' />
         <p className='mt-1 text-xs text-slate-600'>{selectedIds.length} of 3 selected</p><div className='mt-2'><select className='rounded-md border px-2 py-1 text-sm' value={productFilter} onChange={(e)=>setProductFilter(e.target.value)}><option value='all'>all products</option>{productOptions.map((p)=><option key={p} value={p}>{p}</option>)}</select></div>
 
         {loading && <p className='mt-3 text-sm text-slate-600'>Loading scenarios...</p>}

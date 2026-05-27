@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { createTag, deleteTag, listTags, updateTag, type Tag } from '../features/tag/api/tagRepository'
+import { WhenToUseCard } from '../shared/ui/WhenToUseCard'
 
 export function TagManagementPage() {
   const [tags, setTags] = useState<Tag[]>([])
@@ -23,6 +24,11 @@ export function TagManagementPage() {
   return <section className="rounded-xl bg-white p-6 shadow-sm">
     <h2 className="text-lg font-medium">Scenario Labels</h2>
     <p className="mt-1 text-sm text-slate-600">Create, edit, and delete labels for organizing scenarios.</p>
+    <WhenToUseCard bullets={[
+      'Use this view to organize scenarios with simple labels.',
+      'In practice, labels help separate scenarios by purpose, such as budget, forecast, pricing review, cost reduction, or management presentation.',
+      'Labels are not accounting dimensions; they are mainly used to organize scenario work.'
+    ]} note='For PL analysis dimensions such as Product, Customer, Channel, and Region, use Analysis Dimensions instead.' />
     <div className="mt-4 flex gap-2">
       <input className="flex-1 rounded-md border px-3 py-2" placeholder="New label name" value={name} onChange={(e) => setName(e.target.value)} />
       <button onClick={() => void onCreate()} disabled={saving} className="rounded-md bg-slate-900 px-3 py-2 text-sm text-white disabled:opacity-50">{saving ? 'Saving...' : 'Add Label'}</button>
