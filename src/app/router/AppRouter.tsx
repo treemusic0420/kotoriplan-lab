@@ -5,6 +5,7 @@ import { ScenarioEditorPage } from '../../pages/ScenarioEditorPage'
 import { ScenarioDetailPage } from '../../pages/ScenarioDetailPage'
 import { ScenarioComparePage } from '../../pages/ScenarioComparePage'
 import { TagManagementPage } from '../../pages/TagManagementPage'
+import { PLViewPage } from '../../pages/PLViewPage'
 import { AuthPage } from '../../pages/AuthPage'
 import { RequireAuth } from '../../features/auth/RequireAuth'
 
@@ -20,6 +21,7 @@ export function AppRouter() {
         <Route path="/scenarios/compare" element={<RequireAuth><ScenarioComparePage /></RequireAuth>} />
         <Route path="/compare" element={<RequireAuth><ScenarioComparePage /></RequireAuth>} />
         <Route path="/tags" element={<RequireAuth><TagManagementPage /></RequireAuth>} />
+        <Route path="/pl" element={<RequireAuth><PLViewPage /></RequireAuth>} />
       </Routes>
     </AppShell>
   )

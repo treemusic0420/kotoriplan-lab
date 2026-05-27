@@ -7,6 +7,7 @@ const links = [
   { to: '/scenarios/new', label: 'Scenario Editor' },
   { to: '/compare', label: 'Scenario Compare' },
   { to: '/tags', label: 'Tag Management' },
+  { to: '/pl', label: 'PL View' },
 ]
 
 export function AppShell({ children }: { children: ReactNode }) {
