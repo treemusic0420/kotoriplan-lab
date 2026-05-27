@@ -1,6 +1,7 @@
 import { getSupabaseClient } from '../../../infra/supabase/client'
-import { mapFormToInsertPayload, mapScenarioRowToModel, type ScenarioRow } from './mappers'
+import { mapFormToInsertPayload, mapScenarioRowToModel, type ScenarioRow } from '../model/scenarioMapper'
 import type { Scenario, ScenarioFormValues, ScenarioListItem } from '../model/types'
+import { ensureScenarioLineItems, deleteScenarioLineItemsByScenarioId } from './scenarioLineItemRepository'
 
 const SCENARIO_SELECT =
   'id, name, target_year_month, unit_price, quantity, variable_cost_per_unit, fixed_cost, note, status, created_at, updated_at, owner_user_id'
@@ -9,96 +10,80 @@ const formatSupabaseError = (
   operation: string,
   status: number,
   error: { message: string; code?: string; details?: string | null },
-) => {
-  const details = [
-    `operation=${operation}`,
-    `status=${status}`,
-    `message=${error.message}`,
-    error.code ? `code=${error.code}` : null,
-    error.details ? `details=${error.details}` : null,
-  ]
-    .filter(Boolean)
-    .join(', ')
+) => `Supabase ${operation} failed (status ${status}): ${error.message}`
 
-  console.error('[supabase] request failed', details)
-  return `Supabase ${operation} failed (status ${status}): ${error.message}`
-}
-
-const requireUserId = async () => {
+export const requireUserId = async () => {
   const { data, error } = await getSupabaseClient().auth.getUser()
   if (error) throw new Error(`Failed to read auth user: ${error.message}`)
   if (!data.user) throw new Error('Authentication required')
   return data.user.id
 }
 
-export async function createScenario(values: ScenarioFormValues): Promise<Scenario> {
+export async function listScenarios(userId: string): Promise<Scenario[]> {
   const supabase = getSupabaseClient()
-  const ownerUserId = await requireUserId()
-  const payload = { ...mapFormToInsertPayload(values), owner_user_id: ownerUserId }
-
-  const { data, error, status } = await (supabase.from('scenarios') as any)
-    .insert(payload)
-    .select(SCENARIO_SELECT)
-    .single()
-
-  if (error) {
-    throw new Error(formatSupabaseError('insert', status, error))
-  }
-
-  return mapScenarioRowToModel(data as ScenarioRow)
-}
-
-export async function fetchScenarios(): Promise<ScenarioListItem[]> {
-  const supabase = getSupabaseClient()
-  const ownerUserId = await requireUserId()
   const { data, error, status } = await supabase
     .from('scenarios')
     .select(SCENARIO_SELECT)
-    .eq('owner_user_id', ownerUserId)
+    .eq('owner_user_id', userId)
     .order('created_at', { ascending: false })
     .returns<ScenarioRow[]>()
-
-  if (error) {
-    throw new Error(formatSupabaseError('list', status, error))
-  }
-
-  return data.map((row) => mapScenarioRowToModel(row))
+  if (error) throw new Error(formatSupabaseError('list', status, error))
+  return data.map(mapScenarioRowToModel)
 }
 
-export async function fetchScenarioById(id: string): Promise<Scenario | null> {
-  const supabase = getSupabaseClient()
-  const ownerUserId = await requireUserId()
-  const { data, error, status } = await supabase
+export async function getScenario(id: string, userId: string): Promise<Scenario | null> {
+  const { data, error, status } = await getSupabaseClient()
     .from('scenarios')
     .select(SCENARIO_SELECT)
     .eq('id', id)
-    .eq('owner_user_id', ownerUserId)
+    .eq('owner_user_id', userId)
     .maybeSingle<ScenarioRow>()
-
-  if (error) {
-    throw new Error(formatSupabaseError('get', status, error))
-  }
-
-  if (!data) {
-    return null
-  }
-
-  return mapScenarioRowToModel(data)
+  if (error) throw new Error(formatSupabaseError('get', status, error))
+  return data ? mapScenarioRowToModel(data) : null
 }
 
-export async function fetchScenariosForCompare(): Promise<Scenario[]> {
-  const supabase = getSupabaseClient()
-  const ownerUserId = await requireUserId()
-  const { data, error, status } = await supabase
-    .from('scenarios')
-    .select(SCENARIO_SELECT)
+export async function createScenario(input: ScenarioFormValues, userId?: string): Promise<Scenario> {
+  const ownerUserId = userId ?? (await requireUserId())
+  const payload = { ...mapFormToInsertPayload(input), owner_user_id: ownerUserId }
+  const { data, error, status } = await (getSupabaseClient().from('scenarios') as any).insert(payload).select(SCENARIO_SELECT).single()
+  if (error) throw new Error(formatSupabaseError('insert', status, error))
+  return mapScenarioRowToModel(data as ScenarioRow)
+}
+
+export async function updateScenario(id: string, input: ScenarioFormValues, userId?: string): Promise<Scenario> {
+  const ownerUserId = userId ?? (await requireUserId())
+  const payload = mapFormToInsertPayload(input)
+  const { data, error, status } = await (getSupabaseClient().from('scenarios') as any)
+    .update(payload)
+    .eq('id', id)
     .eq('owner_user_id', ownerUserId)
-    .order('created_at', { ascending: false })
-    .returns<ScenarioRow[]>()
-
-  if (error) {
-    throw new Error(formatSupabaseError('list for compare', status, error))
-  }
-
-  return data.map((row) => mapScenarioRowToModel(row))
+    .select(SCENARIO_SELECT)
+    .single()
+  if (error) throw new Error(formatSupabaseError('update', status, error))
+  await ensureScenarioLineItems(id)
+  return mapScenarioRowToModel(data as ScenarioRow)
 }
+
+export async function deleteScenario(id: string, userId?: string): Promise<void> {
+  const ownerUserId = userId ?? (await requireUserId())
+  await deleteScenarioLineItemsByScenarioId(id, ownerUserId)
+  const { error, status } = await getSupabaseClient().from('scenarios').delete().eq('id', id).eq('owner_user_id', ownerUserId)
+  if (error) throw new Error(formatSupabaseError('delete', status, error))
+}
+
+export async function duplicateScenario(id: string, userId?: string): Promise<Scenario> {
+  const ownerUserId = userId ?? (await requireUserId())
+  const source = await getScenario(id, ownerUserId)
+  if (!source) throw new Error('Scenario not found')
+  const created = await createScenario({
+    ...source,
+    name: `${source.name} Copy`,
+    status: 'draft',
+  }, ownerUserId)
+  await ensureScenarioLineItems(created.id)
+  return created
+}
+
+export async function fetchScenarios(): Promise<ScenarioListItem[]> { return listScenarios(await requireUserId()) }
+export async function fetchScenarioById(id: string): Promise<Scenario | null> { return getScenario(id, await requireUserId()) }
+export async function fetchScenariosForCompare(): Promise<Scenario[]> { return listScenarios(await requireUserId()) }

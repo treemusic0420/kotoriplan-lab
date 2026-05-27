@@ -218,3 +218,14 @@ export async function upsertScenarioLineItems(items: ScenarioLineItemUpsertInput
     throw new Error(`Failed to upsert scenario line items: ${details}`)
   }
 }
+
+
+export async function deleteScenarioLineItemsByScenarioId(scenarioId: string, ownerUserId?: string): Promise<void> {
+  const resolvedOwnerUserId = ownerUserId ?? (await requireUserId())
+  const { error } = await getSupabaseClient()
+    .from('scenario_line_items')
+    .delete()
+    .eq('scenario_id', scenarioId)
+    .eq('owner_user_id', resolvedOwnerUserId)
+  if (error) throw new Error(`Failed to delete scenario line items: ${error.message}`)
+}
