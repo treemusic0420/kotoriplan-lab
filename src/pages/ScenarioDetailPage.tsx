@@ -9,6 +9,20 @@ import type { Scenario, ScenarioLineItem } from '../features/scenario/model/type
 const currency = (value: number | null) => (value === null ? '-' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value))
 const percent = (value: number) => `${(value * 100).toFixed(2)}%`
 
+const normalizeTargetMonthForStorage = (value: string) => {
+  const v = String(value)
+  if (/^\d{4}-\d{2}$/.test(v)) return `${v}-01`
+  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v
+  return v
+}
+
+const formatTargetMonthForDisplay = (value: string) => String(value).slice(0, 7)
+
+const formatOrganizationForDisplay = (organization: ScenarioLineItem['organization']) => {
+  const raw = organization?.name ?? organization?.code ?? '-'
+  return String(raw).toUpperCase() === 'ALL' ? 'All' : raw
+}
+
 export function ScenarioDetailPage() {
   const { id } = useParams<{ id: string }>()
   const [scenario, setScenario] = useState<Scenario | null>(null)
@@ -87,7 +101,7 @@ export function ScenarioDetailPage() {
         accountId: `derived-${code.toLowerCase()}`,
         organizationId: 'derived-all',
         versionId: 'derived-forecast',
-        targetYearMonth: scenario.targetYearMonth,
+        targetYearMonth: normalizeTargetMonthForStorage(scenario.targetYearMonth),
         amount: computedAmounts[code],
         quantity: null,
         unitPrice: null,
@@ -95,7 +109,7 @@ export function ScenarioDetailPage() {
         createdAt: '',
         updatedAt: '',
         account: { id: `derived-${code.toLowerCase()}`, code, name: displayNames[code] },
-        organization: { id: 'derived-all', code: 'ALL', name: 'ALL' },
+        organization: { id: 'derived-all', code: 'ALL', name: 'All' },
         version: { id: 'derived-forecast', name: 'Forecast', versionType: 'forecast', isDefault: true },
       }
     })
@@ -185,9 +199,9 @@ export function ScenarioDetailPage() {
                     <tr key={item.id} className="border-t">
                       <td className="px-3 py-2">{item.account?.name ?? item.account?.code ?? '-'}</td>
                       <td className="px-3 py-2">{currency(item.amount)}</td>
-                      <td className="px-3 py-2">{item.organization?.name ?? item.organization?.code ?? '-'}</td>
+                      <td className="px-3 py-2">{formatOrganizationForDisplay(item.organization)}</td>
                       <td className="px-3 py-2">{item.version?.name ?? '-'}</td>
-                      <td className="px-3 py-2">{item.targetYearMonth}</td>
+                      <td className="px-3 py-2">{formatTargetMonthForDisplay(item.targetYearMonth)}</td>
                     </tr>
                   ))}
                   {plLineItems.length === 0 && (
