@@ -55,7 +55,9 @@ export function ScenarioEditorPage() {
       const created = await createScenario(values)
       navigate(`/scenarios/${created.id}`)
     } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : 'Failed to save scenario')
+      const message = error instanceof Error ? error.message : 'Failed to save scenario'
+      console.error('[scenario] save failed', message)
+      setSubmitError(`Failed to save scenario: ${message}`)
     }
   }
 

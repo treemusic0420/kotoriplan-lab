@@ -18,7 +18,9 @@ export function ScenarioListPage() {
       try {
         setItems(await fetchScenarios())
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch scenarios')
+        const message = err instanceof Error ? err.message : 'Unknown error'
+        console.error('[scenario] list failed', message)
+        setError(`Failed to load scenarios: ${message}`)
       } finally {
         setLoading(false)
       }
