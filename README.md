@@ -123,3 +123,7 @@ firebase deploy --only hosting
 
 - `public: dist`
 - すべてのルートを `/index.html` に rewrite
+
+## Next UI backlog
+- Driver View (separate from PL View)
+- Unit Price / Quantity / Variable Cost per Unit by Product / Scenario

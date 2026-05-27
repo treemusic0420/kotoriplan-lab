@@ -4,7 +4,7 @@ import type { FixedCostInputItem, FixedCostItem, Scenario, ScenarioFormValues, S
 import { ensureScenarioLineItems, deleteScenarioLineItemsByScenarioId } from './scenarioLineItemRepository'
 
 const SCENARIO_SELECT =
-  'id, name, target_year_month, unit_price, quantity, variable_cost_per_unit, fixed_cost, note, status, created_at, updated_at, owner_user_id'
+  'id, product_name, name, target_year_month, unit_price, quantity, variable_cost_per_unit, fixed_cost, note, status, created_at, updated_at, owner_user_id'
 
 type FixedCostItemRow = {
   id: string
