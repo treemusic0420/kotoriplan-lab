@@ -154,9 +154,9 @@ export async function ensureMasterData(): Promise<void> {
 
   const { error: versionsError, status: versionsStatus } = await (supabase.from('versions') as any).upsert(
     [
-      { owner_user_id: ownerUserId, name: 'Actual', version_type: 'actual', sort_order: 10, is_default: true },
+      { owner_user_id: ownerUserId, name: 'Actual', version_type: 'actual', sort_order: 10, is_default: false },
       { owner_user_id: ownerUserId, name: 'Budget', version_type: 'budget', sort_order: 20, is_default: false },
-      { owner_user_id: ownerUserId, name: 'Forecast', version_type: 'forecast', sort_order: 30, is_default: false },
+      { owner_user_id: ownerUserId, name: 'Forecast', version_type: 'forecast', sort_order: 30, is_default: true },
     ],
     { onConflict: 'owner_user_id,name', ignoreDuplicates: true },
   )
