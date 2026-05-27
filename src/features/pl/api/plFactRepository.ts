@@ -9,11 +9,35 @@ const req = async () => {
   return data.user.id
 }
 
-export async function hasSamplePlData() {
+const REQUIRED_SAMPLE_ACCOUNTS = new Set(STANDARD_PL_ACCOUNTS.map((a) => a.accountKey))
+
+export async function inspectSamplePlData() {
   const u = await req()
-  const { count, error } = await getSupabaseClient().from('pl_facts').select('id', { count: 'exact', head: true }).eq('owner_user_id', u).eq('is_sample', true)
+  const { data, error } = await getSupabaseClient()
+    .from('pl_facts')
+    .select('id,owner_user_id,version,target_month,account_key,amount,is_sample,created_at')
+    .eq('owner_user_id', u)
+    .order('created_at', { ascending: false })
   if (error) throw new Error(error.message)
-  return (count ?? 0) > 0
+  const rows = data ?? []
+  const sampleRows = rows.filter((r: any) => Boolean(r.is_sample))
+  return {
+    userId: u,
+    factCount: sampleRows.length,
+    firstRows: sampleRows.slice(0, 5),
+    versions: Array.from(new Set(sampleRows.map((r: any) => String(r.version)))),
+    accountKeys: Array.from(new Set(sampleRows.map((r: any) => String(r.account_key)))),
+    targetMonths: Array.from(new Set(sampleRows.map((r: any) => String(r.target_month).slice(0, 10))))
+  }
+}
+
+export async function hasSamplePlData() {
+  const summary = await inspectSamplePlData()
+  const accountSet = new Set(summary.accountKeys)
+  const hasAllAccounts = Array.from(REQUIRED_SAMPLE_ACCOUNTS).every((key) => accountSet.has(key))
+  const hasRequiredVersions = ['actual', 'budget', 'forecast'].every((v) => summary.versions.includes(v))
+  const hasFirstHalf2026 = ['2026-01-01', '2026-02-01', '2026-03-01', '2026-04-01', '2026-05-01', '2026-06-01'].every((m) => summary.targetMonths.includes(m))
+  return summary.factCount > 0 && hasAllAccounts && hasRequiredVersions && hasFirstHalf2026
 }
 
 export async function resetSamplePlData() {
@@ -25,7 +49,8 @@ export async function resetSamplePlData() {
 }
 
 export async function loadSamplePlData() {
-  if (await hasSamplePlData()) return
+  if (!(await hasSamplePlData())) await resetSamplePlData()
+  else return
   const u = await req()
   const dimMap = new Map<string, string>()
   const valMap = new Map<string, string[]>()
@@ -90,15 +115,18 @@ export async function aggregateMonthlyPl(f: SamplePlFilter) {
     .eq('organization_key', f.organizationKey)
     .gte('target_month', `${f.year}-01-01`)
     .lte('target_month', `${f.year}-12-31`)
-  if (f.analysisDimensionId && f.analysisDimensionValueId) {
-    const { data: links } = await getSupabaseClient()
+  if (f.analysisDimensionId) {
+    let linkQuery: any = getSupabaseClient()
       .from('pl_fact_dimension_values')
       .select('pl_fact_id')
       .eq('owner_user_id', u)
       .eq('is_sample', true)
       .eq('analysis_dimension_id', f.analysisDimensionId)
-      .eq('analysis_dimension_value_id', f.analysisDimensionValueId)
-    q = q.in('id', (links ?? []).map((x: any) => x.pl_fact_id))
+    if (f.analysisDimensionValueId) linkQuery = linkQuery.eq('analysis_dimension_value_id', f.analysisDimensionValueId)
+    const { data: links } = await linkQuery
+    const ids = Array.from(new Set((links ?? []).map((x: any) => x.pl_fact_id)))
+    if (ids.length === 0) return []
+    q = q.in('id', ids)
   }
   const { data, error } = await q
   if (error) throw new Error(`Failed to load PL facts: ${error.message}`)
@@ -128,4 +156,22 @@ export function orderedAccountKeys() {
 
 export function accountMeta(key: string) {
   return PL_ACCOUNT_BY_KEY.get(key)
+}
+
+
+export async function getSamplePlStatus() {
+  const u = await req()
+  const { count, error } = await getSupabaseClient().from('pl_facts').select('id', { count: 'exact', head: true }).eq('owner_user_id', u).eq('is_sample', true)
+  if (error) throw new Error(error.message)
+  const { data: latest, error: latestErr } = await getSupabaseClient()
+    .from('pl_facts')
+    .select('created_at')
+    .eq('owner_user_id', u)
+    .eq('is_sample', true)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  if (latestErr) throw new Error(latestErr.message)
+  const latestRow: any = latest
+  return { rows: count ?? 0, lastLoadedAt: latestRow?.created_at ?? null }
 }
