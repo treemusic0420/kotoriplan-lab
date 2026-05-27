@@ -51,7 +51,55 @@ export function ScenarioDetailPage() {
   }, [scenario])
 
   const plCodes = new Set(['SALES', 'VARIABLE_COST', 'FIXED_COST', 'CONTRIBUTION_MARGIN', 'OPERATING_PROFIT'])
-  const plLineItems = lineItems.filter((item) => item.account?.code ? plCodes.has(item.account.code) : false)
+  const plLineItems = useMemo(() => {
+    if (!scenario || !cvp) return []
+
+    const codeOrder = ['SALES', 'VARIABLE_COST', 'CONTRIBUTION_MARGIN', 'FIXED_COST', 'OPERATING_PROFIT'] as const
+    const displayNames: Record<(typeof codeOrder)[number], string> = {
+      SALES: 'Sales',
+      VARIABLE_COST: 'Variable Cost',
+      CONTRIBUTION_MARGIN: 'Contribution Margin',
+      FIXED_COST: 'Fixed Cost',
+      OPERATING_PROFIT: 'Operating Profit',
+    }
+    const computedAmounts: Record<(typeof codeOrder)[number], number> = {
+      SALES: cvp.sales,
+      VARIABLE_COST: cvp.variableCost,
+      CONTRIBUTION_MARGIN: cvp.contributionMargin,
+      FIXED_COST: scenario.fixedCost,
+      OPERATING_PROFIT: cvp.operatingProfit,
+    }
+
+    const sourceByCode = new Map(
+      lineItems
+        .filter((item) => (item.account?.code ? plCodes.has(item.account.code) : false))
+        .map((item) => [item.account!.code, item]),
+    )
+
+    return codeOrder.map((code) => {
+      const existing = sourceByCode.get(code)
+      if (existing) return existing
+
+      return {
+        id: `derived-${code.toLowerCase()}-${scenario.id}`,
+        ownerUserId: scenario.id,
+        scenarioId: scenario.id,
+        accountId: `derived-${code.toLowerCase()}`,
+        organizationId: 'derived-all',
+        versionId: 'derived-forecast',
+        targetYearMonth: scenario.targetYearMonth,
+        amount: computedAmounts[code],
+        quantity: null,
+        unitPrice: null,
+        note: 'Derived from CVP result for display',
+        createdAt: '',
+        updatedAt: '',
+        account: { id: `derived-${code.toLowerCase()}`, code, name: displayNames[code] },
+        organization: { id: 'derived-all', code: 'ALL', name: 'ALL' },
+        version: { id: 'derived-forecast', name: 'Forecast', versionType: 'forecast', isDefault: true },
+      }
+    })
+  }, [lineItems, scenario, cvp])
 
   const chartData = cvp
     ? [{ name: 'Amount', Sales: cvp.sales, 'Variable Cost': cvp.variableCost, 'Fixed Cost': scenario?.fixedCost ?? 0, 'Operating Profit': cvp.operatingProfit }]
@@ -96,7 +144,7 @@ export function ScenarioDetailPage() {
           </div>
 
           <div className="mt-6 h-80 rounded-lg border p-3">
-            <p className="mb-3 text-sm font-medium">CVP Snapshot Chart</p>
+            <p className="mb-3 text-sm font-semibold tracking-tight text-slate-800">CVP Snapshot Chart</p>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -114,13 +162,13 @@ export function ScenarioDetailPage() {
 
 
           <div className="mt-6 rounded-lg border p-4">
-            <h3 className="text-base font-medium">Fixed Cost Breakdown</h3>
+            <h3 className="text-base font-semibold tracking-tight text-slate-800">Fixed Cost Breakdown</h3>
             {scenario.fixedCostItems && scenario.fixedCostItems.length > 0 ? (
-              <div className="mt-2 overflow-x-auto"><table className="min-w-full text-sm"><thead><tr className="bg-slate-50"><th className="px-3 py-2 text-left">Name</th><th className="px-3 py-2 text-left">Amount</th></tr></thead><tbody>{scenario.fixedCostItems.map((item)=><tr key={item.id ?? `${item.name}-${item.sortOrder}`} className="border-t"><td className="px-3 py-2">{item.name}</td><td className="px-3 py-2">{currency(item.amount)}</td></tr>)}<tr className="border-t bg-slate-50"><td className="px-3 py-2 font-medium">Total Fixed Cost</td><td className="px-3 py-2 font-medium">{currency(scenario.fixedCost)}</td></tr></tbody></table></div>
+              <div className="mt-2 overflow-x-auto rounded-lg border"><table className="min-w-full text-sm"><thead><tr className="bg-slate-100 text-slate-800"><th className="px-3 py-2 text-left font-semibold">Name</th><th className="px-3 py-2 text-left font-semibold">Amount</th></tr></thead><tbody>{scenario.fixedCostItems.map((item)=><tr key={item.id ?? `${item.name}-${item.sortOrder}`} className="border-t"><td className="px-3 py-2">{item.name}</td><td className="px-3 py-2">{currency(item.amount)}</td></tr>)}<tr className="border-t bg-slate-50"><td className="px-3 py-2 font-medium">Total Fixed Cost</td><td className="px-3 py-2 font-medium">{currency(scenario.fixedCost)}</td></tr></tbody></table></div>
             ) : <p className="mt-2 text-sm text-slate-600">No fixed cost breakdown. Using total fixed cost only.</p>}
           </div>
           <div className="mt-6">
-            <h3 className="text-base font-medium">Forecast PL Line Items</h3>
+            <h3 className="text-base font-semibold tracking-tight text-slate-800">Forecast PL Line Items</h3>
             <div className="mt-2 overflow-x-auto rounded-lg border">
               <table className="min-w-full text-sm">
                 <thead className="bg-slate-50">
