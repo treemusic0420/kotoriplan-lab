@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { ensureMasterData } from '../features/master/api/masterRepository'
 import { fetchScenarios } from '../features/scenario/api/scenarioRepository'
 import type { ScenarioListItem } from '../features/scenario/model/types'
 
@@ -16,6 +17,7 @@ export function ScenarioListPage() {
       setLoading(true)
       setError(null)
       try {
+        await ensureMasterData()
         setItems(await fetchScenarios())
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Unknown error'
