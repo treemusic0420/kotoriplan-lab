@@ -42,31 +42,87 @@ export async function hasSamplePlData() {
 
 export async function resetSamplePlData() {
   const u = await req()
-  await getSupabaseClient().from('pl_fact_dimension_values').delete().eq('owner_user_id', u).eq('is_sample', true)
-  await getSupabaseClient().from('pl_facts').delete().eq('owner_user_id', u).eq('is_sample', true)
-  await getSupabaseClient().from('analysis_dimension_values').delete().eq('owner_user_id', u).eq('is_sample', true)
-  await getSupabaseClient().from('analysis_dimensions').delete().eq('owner_user_id', u).eq('is_sample', true)
+  const supabase = getSupabaseClient()
+  const { error: linkDeleteError } = await supabase.from('pl_fact_dimension_values').delete().eq('owner_user_id', u).eq('is_sample', true)
+  if (linkDeleteError) throw new Error(`Failed to delete sample PL dimension links: ${linkDeleteError.message}`)
+  const { error: factDeleteError } = await supabase.from('pl_facts').delete().eq('owner_user_id', u).eq('is_sample', true)
+  if (factDeleteError) throw new Error(`Failed to delete sample PL facts: ${factDeleteError.message}`)
+  const { error: valueDeleteError } = await supabase.from('analysis_dimension_values').delete().eq('owner_user_id', u).eq('is_sample', true)
+  if (valueDeleteError) throw new Error(`Failed to delete sample dimension values: ${valueDeleteError.message}`)
+  const { error: dimensionDeleteError } = await supabase.from('analysis_dimensions').delete().eq('owner_user_id', u).eq('is_sample', true)
+  if (dimensionDeleteError) throw new Error(`Failed to delete sample dimensions: ${dimensionDeleteError.message}`)
+  return loadSamplePlData()
+}
+
+function requireDimension(dimensions: any[], key: string) {
+  const normalized = key.trim().toLowerCase()
+  const found = dimensions.find((d: any) => String(d.key ?? '').trim().toLowerCase() === normalized)
+  if (!found?.id) throw new Error(`Sample dimension not found: ${normalized}`)
+  return found
+}
+
+function requireDimensionValue(values: any[], name: string) {
+  const normalized = name.trim().toLowerCase()
+  const found = values.find((v: any) => String(v.name ?? '').trim().toLowerCase() === normalized)
+  if (!found?.id) throw new Error(`Sample dimension value not found: ${name}`)
+  return found
+}
+
+async function ensureSampleDimensions(userId: string) {
+  const supabase = getSupabaseClient()
+  for (const d of sampleDimensions) {
+    const { error } = await (supabase.from('analysis_dimensions') as any).upsert(
+      { owner_user_id: userId, key: d.key, name: d.name, is_sample: true },
+      { onConflict: 'owner_user_id,key' }
+    )
+    if (error) throw new Error(`Failed to ensure sample dimension ${d.key}: ${error.message}`)
+  }
+}
+
+async function ensureDimensionValues(userId: string, dimensions: any[]) {
+  const supabase = getSupabaseClient()
+  for (const d of sampleDimensions) {
+    const dimension = requireDimension(dimensions, d.key)
+    const payload = d.values.map((name) => ({ owner_user_id: userId, analysis_dimension_id: dimension.id, name, is_sample: true }))
+    const { error } = await (supabase.from('analysis_dimension_values') as any).upsert(payload, { onConflict: 'owner_user_id,analysis_dimension_id,name' })
+    if (error) throw new Error(`Failed to ensure sample dimension values for ${d.key}: ${error.message}`)
+  }
+}
+
+async function fetchDimensionsAndValues(userId: string) {
+  const supabase = getSupabaseClient()
+  const { data: dimensions, error: dimensionsError } = await supabase
+    .from('analysis_dimensions')
+    .select('id,key,name')
+    .eq('owner_user_id', userId)
+    .in('key', sampleDimensions.map((d) => d.key))
+  if (dimensionsError) throw new Error(`Failed to load sample dimensions: ${dimensionsError.message}`)
+
+  const dimensionIds = (dimensions ?? []).map((d: any) => d.id)
+  const { data: values, error: valuesError } = await supabase
+    .from('analysis_dimension_values')
+    .select('id,analysis_dimension_id,name')
+    .eq('owner_user_id', userId)
+    .in('analysis_dimension_id', dimensionIds)
+  if (valuesError) throw new Error(`Failed to load sample dimension values: ${valuesError.message}`)
+  return { dimensions: dimensions ?? [], values: values ?? [] }
 }
 
 export async function loadSamplePlData() {
-  if (!(await hasSamplePlData())) await resetSamplePlData()
-  else return
   const u = await req()
-  const dimMap = new Map<string, string>()
-  const valMap = new Map<string, string[]>()
+  const supabase = getSupabaseClient()
+  await ensureSampleDimensions(u)
+  let latest = await fetchDimensionsAndValues(u)
+  await ensureDimensionValues(u, latest.dimensions)
+  latest = await fetchDimensionsAndValues(u)
+
+  const dimensionMap = new Map<string, any>()
+  const valueMap = new Map<string, any[]>()
   for (const d of sampleDimensions) {
-    const { data } = await (getSupabaseClient().from('analysis_dimensions') as any)
-      .insert({ owner_user_id: u, key: d.key, name: d.name, is_sample: true })
-      .select('*').single()
-    dimMap.set(d.key, data.id)
-    const ids: string[] = []
-    for (const v of d.values) {
-      const { data: dv } = await (getSupabaseClient().from('analysis_dimension_values') as any)
-        .insert({ owner_user_id: u, analysis_dimension_id: data.id, name: v, is_sample: true })
-        .select('*').single()
-      ids.push(dv.id)
-    }
-    valMap.set(d.key, ids)
+    const dimension = requireDimension(latest.dimensions, d.key)
+    dimensionMap.set(d.key, dimension)
+    const dimensionValues = latest.values.filter((v: any) => v.analysis_dimension_id === dimension.id)
+    valueMap.set(d.key, dimensionValues)
   }
 
   for (let m = 1; m <= 6; m++) {
@@ -75,7 +131,7 @@ export async function loadSamplePlData() {
         const amounts = buildSampleAccountAmounts({ month: m, version, idx })
         const rows = orderedRows(STANDARD_PL_ACCOUNTS, amounts)
         for (const row of rows) {
-          const { data: fact } = await (getSupabaseClient().from('pl_facts') as any)
+          const { data: fact, error: factError } = await (supabase.from('pl_facts') as any)
             .insert({
               owner_user_id: u,
               organization_key: 'all',
@@ -89,19 +145,28 @@ export async function loadSamplePlData() {
               is_sample: true
             })
             .select('*').single()
+          if (factError) throw new Error(`Failed to insert sample PL fact: ${factError.message}`)
+          if (!fact?.id) throw new Error(`Failed to insert sample PL fact: missing fact id (${row.accountKey}, ${version}, ${m})`)
           for (const [k, i] of [['product', idx], ['customer', idx], ['channel', idx], ['region', idx]] as const) {
-            await (getSupabaseClient().from('pl_fact_dimension_values') as any).insert({
+            const dimension = dimensionMap.get(k)
+            if (!dimension?.id) throw new Error(`Sample dimension not found: ${k}`)
+            const value = requireDimensionValue(valueMap.get(k) ?? [], sampleDimensions.find((d) => d.key === k)?.values[i] ?? '')
+            const { error: linkError } = await (supabase.from('pl_fact_dimension_values') as any).insert({
               owner_user_id: u,
               pl_fact_id: fact.id,
-              analysis_dimension_id: dimMap.get(k),
-              analysis_dimension_value_id: valMap.get(k)?.[i],
+              analysis_dimension_id: dimension.id,
+              analysis_dimension_value_id: value.id,
               is_sample: true
             })
+            if (linkError) throw new Error(`Failed to insert PL fact dimension link (${k}): ${linkError.message}`)
           }
         }
       }
     }
   }
+  const { count, error: countError } = await supabase.from('pl_facts').select('id', { count: 'exact', head: true }).eq('owner_user_id', u).eq('is_sample', true)
+  if (countError) throw new Error(`Failed to count sample PL facts: ${countError.message}`)
+  return { loadedFacts: count ?? 0 }
 }
 
 export async function aggregateMonthlyPl(f: SamplePlFilter) {
