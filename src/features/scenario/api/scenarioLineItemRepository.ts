@@ -102,7 +102,7 @@ export async function fetchScenarioLineItems(scenarioId: string): Promise<Scenar
   return ((data ?? []) as ScenarioLineItemRow[]).map(toModel)
 }
 
-export async function ensureScenarioLineItems(scenarioId: string): Promise<void> {
+export async function ensureScenarioLineItems(scenarioId: string, fixedCostOverride?: number): Promise<void> {
   const existing = await fetchScenarioLineItems(scenarioId)
   if (existing.length > 0) return
 
@@ -146,7 +146,7 @@ export async function ensureScenarioLineItems(scenarioId: string): Promise<void>
   const rows = [
     { code: 'SALES', amount: unitPrice * quantity, quantity: null, unit_price: null },
     { code: 'VARIABLE_COST', amount: scenario.variableCostPerUnit * quantity, quantity: null, unit_price: null },
-    { code: 'FIXED_COST', amount: scenario.fixedCost, quantity: null, unit_price: null },
+    { code: 'FIXED_COST', amount: fixedCostOverride ?? scenario.fixedCost, quantity: null, unit_price: null },
     { code: 'QUANTITY', amount: quantity, quantity, unit_price: null },
     { code: 'UNIT_PRICE', amount: unitPrice, quantity: null, unit_price: unitPrice },
   ]
