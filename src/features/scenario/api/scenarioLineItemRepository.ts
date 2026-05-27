@@ -42,6 +42,30 @@ const toNumber = (value: string | number | null): number | null => {
   return Number(value)
 }
 
+
+const normalizeMonthToDate = (value: string | Date): string => {
+  if (value instanceof Date) {
+    const year = value.getUTCFullYear()
+    const month = String(value.getUTCMonth() + 1).padStart(2, '0')
+    const day = String(value.getUTCDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
+  const raw = String(value).trim()
+  if (/^\d{4}-\d{2}$/.test(raw)) return `${raw}-01`
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw
+
+  const parsed = new Date(raw)
+  if (!Number.isNaN(parsed.getTime())) {
+    const year = parsed.getUTCFullYear()
+    const month = String(parsed.getUTCMonth() + 1).padStart(2, '0')
+    const day = String(parsed.getUTCDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
+  throw new Error(`Invalid targetYearMonth value: ${raw}`)
+}
+
 const toModel = (row: ScenarioLineItemRow): ScenarioLineItem => ({
   id: row.id,
   ownerUserId: row.owner_user_id,
@@ -147,7 +171,7 @@ export async function ensureScenarioLineItems(scenarioId: string): Promise<void>
       accountId: accountByCode.get(row.code)!,
       organizationId: organization.id,
       versionId,
-      targetYearMonth: scenario.targetYearMonth,
+      targetYearMonth: normalizeMonthToDate(scenario.targetYearMonth),
       amount: row.amount,
       quantity: row.quantity,
       unitPrice: row.unit_price,
@@ -180,7 +204,7 @@ export async function upsertScenarioLineItems(items: ScenarioLineItemUpsertInput
     account_id: item.accountId,
     organization_id: item.organizationId,
     version_id: item.versionId,
-    target_year_month: item.targetYearMonth,
+    target_year_month: normalizeMonthToDate(item.targetYearMonth),
     amount: item.amount,
     quantity: item.quantity,
     unit_price: item.unitPrice,
