@@ -127,29 +127,19 @@ export async function ensureScenarioLineItems(scenarioId: string): Promise<void>
     .single<{ id: string }>()
   if (orgError) throw new Error(`Failed to resolve ALL organization: ${orgError.message}`)
 
-  const { data: defaultVersion } = await supabase
+  const { data: forecastVersion, error: forecastVersionError } = await supabase
     .from('versions')
     .select('id')
     .eq('owner_user_id', ownerUserId)
-    .eq('is_default', true)
+    .eq('version_type', 'forecast')
+    .order('sort_order', { ascending: true })
     .limit(1)
     .maybeSingle<{ id: string }>()
 
-  let versionId = defaultVersion?.id
-  if (!versionId) {
-    const { data: forecastVersion, error: forecastVersionError } = await supabase
-      .from('versions')
-      .select('id')
-      .eq('owner_user_id', ownerUserId)
-      .eq('version_type', 'forecast')
-      .order('sort_order', { ascending: true })
-      .limit(1)
-      .maybeSingle<{ id: string }>()
-    if (forecastVersionError) throw new Error(`Failed to resolve forecast version: ${forecastVersionError.message}`)
-    versionId = forecastVersion?.id
-  }
+  if (forecastVersionError) throw new Error(`Failed to resolve forecast version: ${forecastVersionError.message}`)
 
-  if (!versionId) throw new Error('Default/forecast version not found')
+  const versionId = forecastVersion?.id
+  if (!versionId) throw new Error('Forecast version not found')
 
   const quantity = scenario.quantity
   const unitPrice = scenario.unitPrice

@@ -30,7 +30,9 @@ export function PLViewPage() {
         setYears(base.availableYears.length > 0 ? base.availableYears : [new Date().getFullYear()])
 
         const allOrg = base.organizations.find((org) => org.code === 'ALL') ?? base.organizations[0]
-        const defaultVersion = base.versions.find((v) => v.isDefault) ?? base.versions[0]
+        const defaultVersion = base.versions.find((v) => v.versionType === 'forecast')
+          ?? base.versions.find((v) => v.isDefault)
+          ?? base.versions[0]
         const initialYear = (base.availableYears.length > 0 ? base.availableYears[base.availableYears.length - 1] : new Date().getFullYear())
 
         if (!allOrg || !defaultVersion) {
