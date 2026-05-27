@@ -10,15 +10,17 @@ import { hasSupabaseEnv, supabaseEnvErrorMessage } from '../infra/supabase/clien
 const schema = z.object({
   name: z.string().trim().min(1, 'Scenario name is required').max(100),
   targetYearMonth: z.string().regex(/^\d{4}-\d{2}$/, 'Target month must be YYYY-MM'),
-  unitPrice: z.number().min(0),
-  quantity: z.number().min(0),
-  variableCostPerUnit: z.number().min(0),
-  fixedCost: z.number().min(0),
-  note: z.string().max(2000).optional().or(z.literal('')),
+  unitPrice: z.coerce.number().finite().min(0, 'Unit price must be 0 or more'),
+  quantity: z.coerce.number().finite().min(0, 'Quantity must be 0 or more'),
+  variableCostPerUnit: z.coerce.number().finite().min(0, 'Variable cost per unit must be 0 or more'),
+  fixedCost: z.coerce.number().finite().min(0, 'Fixed cost must be 0 or more'),
+  note: z.string().trim().max(2000).optional().or(z.literal('')),
   status: z.enum(['draft', 'final']),
 })
 
-const numberParser = (value: string) => {
+const numberParser = (value: unknown) => {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : 0
+  if (typeof value !== 'string') return 0
   if (value.trim() === '') return 0
   const parsed = Number(value)
   return Number.isFinite(parsed) ? parsed : 0
