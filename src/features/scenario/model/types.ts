@@ -9,7 +9,7 @@ export type Scenario = ScenarioInput & {
 
 export type ScenarioListItem = Pick<
   Scenario,
-  'id' | 'name' | 'targetYearMonth' | 'unitPrice' | 'quantity' | 'fixedCost' | 'status' | 'createdAt'
+  'id' | 'name' | 'targetYearMonth' | 'unitPrice' | 'quantity' | 'variableCostPerUnit' | 'fixedCost' | 'status' | 'createdAt'
 >
 
 export type ScenarioFormValues = Omit<ScenarioInput, 'targetYearMonth' | 'tags'> & {
