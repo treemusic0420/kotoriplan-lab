@@ -3,7 +3,7 @@ import { mapFormToInsertPayload, mapScenarioRowToModel, type ScenarioRow } from 
 import type { Scenario, ScenarioFormValues, ScenarioListItem } from '../model/types'
 
 const SCENARIO_SELECT =
-  'id, name, target_year_month, unit_price, quantity, variable_cost_per_unit, fixed_cost, note, status, created_at, updated_at'
+  'id, name, target_year_month, unit_price, quantity, variable_cost_per_unit, fixed_cost, note, status, created_at, updated_at, owner_user_id'
 
 const formatSupabaseError = (
   operation: string,
@@ -24,9 +24,17 @@ const formatSupabaseError = (
   return `Supabase ${operation} failed (status ${status}): ${error.message}`
 }
 
+const requireUserId = async () => {
+  const { data, error } = await getSupabaseClient().auth.getUser()
+  if (error) throw new Error(`Failed to read auth user: ${error.message}`)
+  if (!data.user) throw new Error('Authentication required')
+  return data.user.id
+}
+
 export async function createScenario(values: ScenarioFormValues): Promise<Scenario> {
   const supabase = getSupabaseClient()
-  const payload = mapFormToInsertPayload(values)
+  const ownerUserId = await requireUserId()
+  const payload = { ...mapFormToInsertPayload(values), owner_user_id: ownerUserId }
 
   const { data, error, status } = await (supabase.from('scenarios') as any)
     .insert(payload)
@@ -42,9 +50,11 @@ export async function createScenario(values: ScenarioFormValues): Promise<Scenar
 
 export async function fetchScenarios(): Promise<ScenarioListItem[]> {
   const supabase = getSupabaseClient()
+  const ownerUserId = await requireUserId()
   const { data, error, status } = await supabase
     .from('scenarios')
     .select(SCENARIO_SELECT)
+    .eq('owner_user_id', ownerUserId)
     .order('created_at', { ascending: false })
     .returns<ScenarioRow[]>()
 
@@ -57,7 +67,13 @@ export async function fetchScenarios(): Promise<ScenarioListItem[]> {
 
 export async function fetchScenarioById(id: string): Promise<Scenario | null> {
   const supabase = getSupabaseClient()
-  const { data, error, status } = await supabase.from('scenarios').select(SCENARIO_SELECT).eq('id', id).maybeSingle<ScenarioRow>()
+  const ownerUserId = await requireUserId()
+  const { data, error, status } = await supabase
+    .from('scenarios')
+    .select(SCENARIO_SELECT)
+    .eq('id', id)
+    .eq('owner_user_id', ownerUserId)
+    .maybeSingle<ScenarioRow>()
 
   if (error) {
     throw new Error(formatSupabaseError('get', status, error))

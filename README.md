@@ -1,6 +1,5 @@
 # kotoriplan-lab
 
-
 Lightweight management accounting lab for CVP-focused scenario analysis (new Kotoriplan MVP).
 
 ## Stack
@@ -28,12 +27,20 @@ Lightweight management accounting lab for CVP-focused scenario analysis (new Kot
    npm run dev
    ```
 
+## Auth (Supabase)
+- Email/Password auth is enabled in app (`/auth`).
+- Protected routes: `/scenarios`, `/scenarios/new`, `/scenarios/:id`, `/compare`, `/tags`.
+- Non-authenticated users are redirected to `/auth`.
+- New scenarios are saved with `owner_user_id = auth user.id`.
+- Scenario list/detail queries also filter by `owner_user_id` on app side.
+
 ## Project structure
 ```text
 src/
   app/
   pages/
   features/
+    auth/
     scenario/
     tag/
   domain/
@@ -46,16 +53,24 @@ src/
 ## Supabase migration
 MVP migration SQL is in:
 - `supabase/migrations/20260527000000_create_mvp_tables.sql`
+- `supabase/migrations/20260527010000_enable_rls_for_scenarios.sql`
 
 Apply with Supabase CLI (example):
 ```bash
 supabase db push
 ```
 
-This migration creates:
-- `scenarios` (includes nullable `owner_user_id` for future auth)
+This migration creates/enforces:
+- `scenarios` table with owner-based row access control
 - `tags`
 - `scenario_tags`
+
+### RLS design notes (important)
+- `scenarios` has RLS enabled with owner-only policies (select/insert/update/delete).
+- With RLS enabled, unauthenticated requests via anon key are blocked by default.
+- `tags` / `scenario_tags` are intentionally not fully locked down in this MVP step.
+- If you later join `scenario_tags` with `scenarios`, ensure policies do not expose cross-user links.
+- Add explicit RLS policies for `tags` / `scenario_tags` before production usage.
 
 Design policy:
 - CVP calculation results are **not persisted** in DB.
@@ -71,12 +86,6 @@ Basic deploy flow:
 npm run build
 firebase deploy --only hosting
 ```
-
-## Not in scope (current phase)
-- Auth screens / Supabase Auth
-- RLS
-- Account / Organization / Version / Actual / Budget
-- PL/BS/CF and other advanced modules
 
 ## GitHub Actions での Firebase Hosting 自動デプロイ
 
