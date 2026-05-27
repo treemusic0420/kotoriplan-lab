@@ -14,6 +14,7 @@ export function AppRouter() {
         <Route path="/scenarios" element={<ScenarioListPage />} />
         <Route path="/scenarios/new" element={<ScenarioEditorPage />} />
         <Route path="/scenarios/:id" element={<ScenarioDetailPage />} />
+        <Route path="/scenarios/compare" element={<ScenarioComparePage />} />
         <Route path="/compare" element={<ScenarioComparePage />} />
         <Route path="/tags" element={<TagManagementPage />} />
       </Routes>
