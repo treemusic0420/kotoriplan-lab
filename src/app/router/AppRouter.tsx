@@ -17,6 +17,7 @@ export function AppRouter() {
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/scenarios" element={<RequireAuth><ScenarioListPage /></RequireAuth>} />
         <Route path="/scenarios/new" element={<RequireAuth><ScenarioEditorPage /></RequireAuth>} />
+        <Route path="/scenarios/:id/edit" element={<RequireAuth><ScenarioEditorPage /></RequireAuth>} />
         <Route path="/scenarios/:id" element={<RequireAuth><ScenarioDetailPage /></RequireAuth>} />
         <Route path="/scenarios/compare" element={<RequireAuth><ScenarioComparePage /></RequireAuth>} />
         <Route path="/compare" element={<RequireAuth><ScenarioComparePage /></RequireAuth>} />
