@@ -1,5 +1,6 @@
 # kotoriplan-lab
 
+
 Lightweight management accounting lab for CVP-focused scenario analysis (new Kotoriplan MVP).
 
 ## Stack
