@@ -158,7 +158,7 @@ export async function ensureMasterData(): Promise<void> {
       { owner_user_id: ownerUserId, name: 'Budget', version_type: 'budget', sort_order: 20, is_default: false },
       { owner_user_id: ownerUserId, name: 'Forecast', version_type: 'forecast', sort_order: 30, is_default: true },
     ],
-    { onConflict: 'owner_user_id,name', ignoreDuplicates: true },
+    { onConflict: 'owner_user_id,name' },
   )
   if (versionsError) throw new Error(formatSupabaseError('versions ensure', versionsStatus, versionsError))
 }
