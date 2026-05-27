@@ -2,8 +2,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { calculateCvp } from '../domain/cvp/formulas'
+import { ensureScenarioLineItems, fetchScenarioLineItems } from '../features/scenario/api/scenarioLineItemRepository'
 import { fetchScenarioById } from '../features/scenario/api/scenarioRepository'
-import type { Scenario } from '../features/scenario/model/types'
+import type { Scenario, ScenarioLineItem } from '../features/scenario/model/types'
 
 const currency = (value: number | null) => (value === null ? '-' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value))
 const percent = (value: number) => `${(value * 100).toFixed(2)}%`
@@ -11,6 +12,7 @@ const percent = (value: number) => `${(value * 100).toFixed(2)}%`
 export function ScenarioDetailPage() {
   const { id } = useParams<{ id: string }>()
   const [scenario, setScenario] = useState<Scenario | null>(null)
+  const [lineItems, setLineItems] = useState<ScenarioLineItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -22,6 +24,13 @@ export function ScenarioDetailPage() {
       try {
         const data = await fetchScenarioById(id)
         setScenario(data)
+        if (data) {
+          await ensureScenarioLineItems(id)
+          const items = await fetchScenarioLineItems(id)
+          setLineItems(items)
+        } else {
+          setLineItems([])
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch scenario')
       } finally {
@@ -88,6 +97,43 @@ export function ScenarioDetailPage() {
                 <Bar dataKey="Operating Profit" fill="#22c55e" />
               </BarChart>
             </ResponsiveContainer>
+          </div>
+
+          <div className="mt-6">
+            <h3 className="text-base font-medium">Line Items</h3>
+            <div className="mt-2 overflow-x-auto rounded-lg border">
+              <table className="min-w-full text-sm">
+                <thead className="bg-slate-50">
+                  <tr>
+                    <th className="px-3 py-2 text-left">Account</th>
+                    <th className="px-3 py-2 text-left">Amount</th>
+                    <th className="px-3 py-2 text-left">Quantity</th>
+                    <th className="px-3 py-2 text-left">Unit price</th>
+                    <th className="px-3 py-2 text-left">Organization</th>
+                    <th className="px-3 py-2 text-left">Version</th>
+                    <th className="px-3 py-2 text-left">Target month</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {lineItems.map((item) => (
+                    <tr key={item.id} className="border-t">
+                      <td className="px-3 py-2">{item.account?.name ?? item.account?.code ?? '-'}</td>
+                      <td className="px-3 py-2">{currency(item.amount)}</td>
+                      <td className="px-3 py-2">{item.quantity === null ? '-' : item.quantity.toFixed(2)}</td>
+                      <td className="px-3 py-2">{item.unitPrice === null ? '-' : currency(item.unitPrice)}</td>
+                      <td className="px-3 py-2">{item.organization?.name ?? item.organization?.code ?? '-'}</td>
+                      <td className="px-3 py-2">{item.version?.name ?? '-'}</td>
+                      <td className="px-3 py-2">{item.targetYearMonth}</td>
+                    </tr>
+                  ))}
+                  {lineItems.length === 0 && (
+                    <tr>
+                      <td colSpan={7} className="px-3 py-4 text-center text-slate-500">No line items</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </>
       )}
