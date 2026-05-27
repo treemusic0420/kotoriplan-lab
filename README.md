@@ -76,3 +76,40 @@ firebase deploy --only hosting
 - RLS
 - Account / Organization / Version / Actual / Budget
 - PL/BS/CF and other advanced modules
+
+## GitHub Actions での Firebase Hosting 自動デプロイ
+
+`main` ブランチへの push をトリガーに、GitHub Actions で以下を実行します。
+
+1. `npm ci`
+2. `npm run build`（Supabase の公開用環境変数を注入）
+3. Firebase Hosting へ deploy（`projectId: kotoriplan-lab`）
+
+ワークフロー定義ファイル:
+- `.github/workflows/deploy-hosting.yml`
+
+### 必要な GitHub Secrets
+
+以下を **GitHub Repository Secrets** に設定してください。
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+- `FIREBASE_SERVICE_ACCOUNT_KOTORIPLAN_LAB`
+
+> ⚠️ セキュリティ注意
+> - `.env` はコミットしない
+> - Firebase Service Account JSON はリポジトリにコミットしない
+> - Supabase の `service_role` key は絶対に使わず、`anon` key のみ利用する
+
+### Firebase 側の前提設定（手動）
+
+- Firebase プロジェクト `kotoriplan-lab` で Hosting を有効化済みであること
+- GitHub Secrets に設定するための Service Account キー（JSON）を発行済みであること
+- （必要に応じて）Service Account に Hosting デプロイ権限を付与していること
+
+### hosting 設定
+
+`firebase.json` は SPA 配信向けに以下を前提としています。
+
+- `public: dist`
+- すべてのルートを `/index.html` に rewrite
