@@ -223,7 +223,7 @@ export function accountMeta(key: string) {
   return PL_ACCOUNT_BY_KEY.get(key)
 }
 
-function versionsForCompare(compareType: CompareType) {
+export function resolveCompareConfig(compareType: CompareType) {
   if (compareType === 'actual_vs_forecast') return { compareVersion: 'actual', baseVersion: 'forecast', compareLabel: 'Actual', baseLabel: 'Forecast' }
   if (compareType === 'forecast_vs_budget') return { compareVersion: 'forecast', baseVersion: 'budget', compareLabel: 'Forecast', baseLabel: 'Budget' }
   return { compareVersion: 'actual', baseVersion: 'budget', compareLabel: 'Actual', baseLabel: 'Budget' }
@@ -231,7 +231,7 @@ function versionsForCompare(compareType: CompareType) {
 
 export async function fetchPlVarianceRows(filters: PlVarianceFilter) {
   const u = await req()
-  const { compareVersion, baseVersion } = versionsForCompare(filters.compareType)
+  const { compareVersion, baseVersion } = resolveCompareConfig(filters.compareType)
   let q: any = getSupabaseClient()
     .from('pl_facts')
     .select('id,account_key,amount,version')
@@ -260,7 +260,7 @@ export async function fetchPlVarianceRows(filters: PlVarianceFilter) {
 
 export async function aggregatePlVariance(filters: PlVarianceFilter) {
   const rows = await fetchPlVarianceRows(filters)
-  const { compareVersion, baseVersion, compareLabel, baseLabel } = versionsForCompare(filters.compareType)
+  const { compareVersion, baseVersion, compareLabel, baseLabel } = resolveCompareConfig(filters.compareType)
   const byAccount = new Map<string, { compareAmount: number; baseAmount: number }>()
   for (const accountKey of orderedAccountKeys()) byAccount.set(accountKey, { compareAmount: 0, baseAmount: 0 })
   rows.forEach((r: any) => {

@@ -11,6 +11,7 @@ import { PLByDimensionPage } from '../../pages/PLByDimensionPage'
 import { AuthPage } from '../../pages/AuthPage'
 import { PLVariancePage } from '../../pages/PLVariancePage'
 import { PLVarianceDriversPage } from '../../pages/PLVarianceDriversPage'
+import { PLBridgePage } from '../../pages/PLBridgePage'
 import { RequireAuth } from '../../features/auth/RequireAuth'
 
 export function AppRouter() {
@@ -31,6 +32,7 @@ export function AppRouter() {
         <Route path="/pl/by-dimension" element={<RequireAuth><PLByDimensionPage /></RequireAuth>} />
         <Route path="/pl/variance" element={<RequireAuth><PLVariancePage /></RequireAuth>} />
         <Route path="/pl/variance-drivers" element={<RequireAuth><PLVarianceDriversPage /></RequireAuth>} />
+        <Route path="/pl/bridge" element={<RequireAuth><PLBridgePage /></RequireAuth>} />
       </Routes>
     </AppShell>
   )

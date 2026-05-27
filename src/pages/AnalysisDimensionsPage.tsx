@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { createDimension, createDimensionValue, deleteDimension, deleteDimensionValue, listDimensions, listDimensionValues } from '../features/dimension/api/dimensionRepository'
 import { getSamplePlStatus, inspectSamplePlData, loadSamplePlData, resetSamplePlData } from '../features/pl/api/plFactRepository'
+import { WhenToUseCard } from '../shared/ui/WhenToUseCard'
 
 export function AnalysisDimensionsPage() {
   const [dims, setDims] = useState<any[]>([])

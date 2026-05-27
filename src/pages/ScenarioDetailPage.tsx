@@ -5,6 +5,7 @@ import { calculateCvp } from '../domain/cvp/formulas'
 import { ensureScenarioLineItems, fetchScenarioLineItems } from '../features/scenario/api/scenarioLineItemRepository'
 import { fetchScenarioById } from '../features/scenario/api/scenarioRepository'
 import type { Scenario, ScenarioLineItem } from '../features/scenario/model/types'
+import { WhenToUseCard } from '../shared/ui/WhenToUseCard'
 
 const currency = (value: number | null) => (value === null ? '-' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value))
 const percent = (value: number) => `${(value * 100).toFixed(2)}%`
@@ -122,6 +123,11 @@ export function ScenarioDetailPage() {
   return (
     <section className="rounded-xl bg-white p-6 shadow-sm">
       <h2 className="text-lg font-medium">Scenario Detail / Result</h2>
+      <WhenToUseCard bullets={[
+        'Use this view to review the financial result of one scenario.',
+        'In practice, this type of view is used to explain whether a plan is profitable, where the break-even point is, and how much safety margin the business has.',
+        'It helps connect business assumptions to financial outcomes such as sales, contribution margin, operating profit, and break-even sales.'
+      ]} note='Typical use cases: scenario review, business case discussion, pricing review, and management explanation.' />
       <div className="mt-2"><Link to="/scenarios" className="text-sm text-blue-600 hover:underline">Back to list</Link></div>
 
       {loading && <p className="mt-4 text-sm text-slate-600">Loading scenario...</p>}

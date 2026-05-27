@@ -5,6 +5,7 @@ import { ensureMasterData } from '../features/master/api/masterRepository'
 import { calculateScenarioSummary } from '../features/scenario/model/scenarioSummary'
 import { deleteScenario, duplicateScenario, fetchScenarios } from '../features/scenario/api/scenarioRepository'
 import type { ScenarioListItem } from '../features/scenario/model/types'
+import { WhenToUseCard } from '../shared/ui/WhenToUseCard'
 
 const c = (n: number | null) => (n === null || Number.isNaN(n) ? '—' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(n))
 const p = (n: number | null) => (n === null || Number.isNaN(n) ? '—' : `${(n * 100).toFixed(2)}%`)
@@ -32,6 +33,11 @@ export function ScenarioListPage() {
   const summary = useMemo(() => calculateScenarioSummary(items), [items])
 
   return <section className='rounded-xl bg-white p-6 shadow-sm'><div className='mb-4 flex items-center justify-between'><h2 className='text-lg font-medium'>Scenario Dashboard</h2><div className='flex gap-2'><button disabled={items.length < 2} onClick={() => navigate('/scenarios/compare')} className='rounded-md border px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50'>Compare Scenarios</button><Link to='/scenarios/new' className='rounded-md bg-slate-900 px-3 py-2 text-sm text-white'>New Scenario</Link></div></div>
+    <WhenToUseCard bullets={[
+      'Use this view to manage multiple business scenarios in one place.',
+      'In practice, FP&A teams often prepare several versions of a plan, such as optimistic, conservative, and revised forecast cases.',
+      'This list helps you compare assumptions, track scenario status, and quickly open the scenario you want to review.'
+    ]} note='Typical use cases: monthly forecast preparation, budget planning, management discussion preparation.' />
     <div className='mb-4 grid gap-3 md:grid-cols-5'>{[['Total Scenarios',String(summary.totalScenarios)],['Best Operating Profit',summary.bestOperatingProfit?`${c(summary.bestOperatingProfit.value)} / ${summary.bestOperatingProfit.name}`:'—'],['Worst Operating Profit',summary.worstOperatingProfit?`${c(summary.worstOperatingProfit.value)} / ${summary.worstOperatingProfit.name}`:'—'],['Average CM Ratio',summary.averageContributionMarginRatio===null?'—':p(summary.averageContributionMarginRatio)],['Latest Scenario',summary.latestScenario?`${summary.latestScenario.name} / ${summary.latestScenario.targetYearMonth}`:'—']].map(([label,val])=><div key={label} className='rounded-xl border bg-slate-50 p-3'><p className='text-xs text-slate-500'>{label}</p><p className='mt-1 text-sm font-medium'>{val}</p></div>)}</div>
     {!loading && !error && items.length === 0 && <p className='mb-3 text-sm text-slate-600'>Create your first scenario to start CVP analysis.</p>}
     <div className='mb-4 grid gap-2 md:grid-cols-4'><input className='rounded-md border px-3 py-2 text-sm' placeholder='Search scenario name / product' value={q} onChange={(e)=>setQ(e.target.value)} /><select className='rounded-md border px-3 py-2 text-sm' value={status} onChange={(e)=>setStatus(e.target.value as any)}><option value='all'>all</option><option value='draft'>draft</option><option value='final'>final</option></select><select className='rounded-md border px-3 py-2 text-sm' value={month} onChange={(e)=>setMonth(e.target.value)}><option value='all'>all months</option>{monthOptions.map((m)=><option key={m} value={m}>{m}</option>)}</select><select className='rounded-md border px-3 py-2 text-sm' value={product} onChange={(e)=>setProduct(e.target.value)}><option value='all'>all products</option>{productOptions.map((m)=><option key={m} value={m}>{m}</option>)}</select></div>

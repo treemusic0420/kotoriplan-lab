@@ -12,6 +12,7 @@ const links = [
   { to: '/pl/by-dimension', label: 'PL by Dimension' },
   { to: '/pl/variance', label: 'PL Variance' },
   { to: '/pl/variance-drivers', label: 'Variance Drivers' },
+  { to: '/pl/bridge', label: 'PL Bridge' },
 ]
 
 export function AppShell({ children }: { children: ReactNode }) {
