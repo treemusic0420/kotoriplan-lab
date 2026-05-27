@@ -1,10 +1,28 @@
 import type { ScenarioInput, ScenarioStatus } from '../../../domain/cvp/types'
 import type { VersionType } from '../../master/model/types'
 
+export type FixedCostItem = {
+  id?: string
+  scenarioId: string
+  ownerUserId: string
+  name: string
+  amount: number
+  sortOrder: number
+  createdAt?: string
+  updatedAt?: string
+}
+
+export type FixedCostInputItem = {
+  name: string
+  amount: number
+  sortOrder: number
+}
+
 export type Scenario = ScenarioInput & {
   id: string
   createdAt: string
   updatedAt: string
+  fixedCostItems?: FixedCostItem[]
 }
 
 export type ScenarioListItem = Pick<
@@ -14,6 +32,7 @@ export type ScenarioListItem = Pick<
 
 export type ScenarioFormValues = Omit<ScenarioInput, 'targetYearMonth' | 'tags'> & {
   targetYearMonth: string
+  fixedCostItems?: FixedCostInputItem[]
 }
 
 export type ScenarioLineItem = {

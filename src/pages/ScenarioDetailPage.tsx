@@ -99,6 +99,13 @@ export function ScenarioDetailPage() {
             </ResponsiveContainer>
           </div>
 
+
+          <div className="mt-6 rounded-lg border p-4">
+            <h3 className="text-base font-medium">Fixed Cost Breakdown</h3>
+            {scenario.fixedCostItems && scenario.fixedCostItems.length > 0 ? (
+              <div className="mt-2 overflow-x-auto"><table className="min-w-full text-sm"><thead><tr className="bg-slate-50"><th className="px-3 py-2 text-left">Name</th><th className="px-3 py-2 text-left">Amount</th></tr></thead><tbody>{scenario.fixedCostItems.map((item)=><tr key={item.id ?? `${item.name}-${item.sortOrder}`} className="border-t"><td className="px-3 py-2">{item.name}</td><td className="px-3 py-2">{currency(item.amount)}</td></tr>)}<tr className="border-t bg-slate-50"><td className="px-3 py-2 font-medium">Total Fixed Cost</td><td className="px-3 py-2 font-medium">{currency(scenario.fixedCost)}</td></tr></tbody></table></div>
+            ) : <p className="mt-2 text-sm text-slate-600">No fixed cost breakdown. Using total fixed cost only.</p>}
+          </div>
           <div className="mt-6">
             <h3 className="text-base font-medium">Line Items</h3>
             <div className="mt-2 overflow-x-auto rounded-lg border">
