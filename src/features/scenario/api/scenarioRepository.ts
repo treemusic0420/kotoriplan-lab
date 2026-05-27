@@ -85,3 +85,20 @@ export async function fetchScenarioById(id: string): Promise<Scenario | null> {
 
   return mapScenarioRowToModel(data)
 }
+
+export async function fetchScenariosForCompare(): Promise<Scenario[]> {
+  const supabase = getSupabaseClient()
+  const ownerUserId = await requireUserId()
+  const { data, error, status } = await supabase
+    .from('scenarios')
+    .select(SCENARIO_SELECT)
+    .eq('owner_user_id', ownerUserId)
+    .order('created_at', { ascending: false })
+    .returns<ScenarioRow[]>()
+
+  if (error) {
+    throw new Error(formatSupabaseError('list for compare', status, error))
+  }
+
+  return data.map((row) => mapScenarioRowToModel(row))
+}
