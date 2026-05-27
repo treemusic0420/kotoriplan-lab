@@ -1,6 +1,7 @@
 export type ScenarioStatus = 'draft' | 'final'
 
 export type ScenarioInput = {
+  productName?: string
   name: string
   targetYearMonth: string
   unitPrice: number

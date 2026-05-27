@@ -24,6 +24,7 @@ export function ScenarioComparePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [limitMsg, setLimitMsg] = useState('')
+  const [productFilter, setProductFilter] = useState<'all' | string>('all')
 
   useEffect(() => {
     void (async () => {
@@ -38,6 +39,9 @@ export function ScenarioComparePage() {
       }
     })()
   }, [])
+
+  const productOptions = useMemo(() => Array.from(new Set(items.map((i) => i.productName || 'General'))).sort(), [items])
+  const visibleItems = useMemo(() => items.filter((i) => productFilter === 'all' || (i.productName || 'General') === productFilter), [items, productFilter])
 
   const selected = useMemo(
     () => selectedIds.map((id) => items.find((i) => i.id === id)).filter(Boolean) as Scenario[],
@@ -91,7 +95,7 @@ export function ScenarioComparePage() {
 
       <div className='mt-4 rounded-lg border bg-slate-50 p-4'>
         <p className='text-sm font-medium text-slate-800'>Select 2 to 3 scenarios to compare</p>
-        <p className='mt-1 text-xs text-slate-600'>{selectedIds.length} of 3 selected</p>
+        <p className='mt-1 text-xs text-slate-600'>{selectedIds.length} of 3 selected</p><div className='mt-2'><select className='rounded-md border px-2 py-1 text-sm' value={productFilter} onChange={(e)=>setProductFilter(e.target.value)}><option value='all'>all products</option>{productOptions.map((p)=><option key={p} value={p}>{p}</option>)}</select></div>
 
         {loading && <p className='mt-3 text-sm text-slate-600'>Loading scenarios...</p>}
         {error && <p className='mt-3 rounded-md bg-rose-50 p-2 text-sm text-rose-700'>{error}</p>}
@@ -103,7 +107,7 @@ export function ScenarioComparePage() {
         )}
 
         <div className='mt-3 grid gap-2 md:grid-cols-2'>
-          {items.map((i) => {
+          {visibleItems.map((i) => {
             const checked = selectedIds.includes(i.id)
             const cvp = calculateCvp({
               unitPrice: i.unitPrice,
@@ -116,7 +120,7 @@ export function ScenarioComparePage() {
                 <span className='flex items-start gap-2'>
                   <input type='checkbox' checked={checked} onChange={() => toggle(i.id)} />
                   <span className='text-sm'>
-                    <b>{i.name}</b>
+                    <b>{i.productName || 'General'} / {i.name}</b>
                     <br />
                     Target month: {i.targetYearMonth}
                     <br />
@@ -149,7 +153,7 @@ export function ScenarioComparePage() {
                   <th className='px-3 py-2 text-left'>Metric</th>
                   {rows.map((r) => (
                     <th key={r.s.id} className='px-3 py-2 text-left'>
-                      {r.s.name}
+                      {r.s.productName || 'General'} / {r.s.name}
                     </th>
                   ))}
                 </tr>

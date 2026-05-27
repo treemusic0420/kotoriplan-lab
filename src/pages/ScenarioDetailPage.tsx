@@ -50,6 +50,9 @@ export function ScenarioDetailPage() {
     })
   }, [scenario])
 
+  const plCodes = new Set(['SALES', 'VARIABLE_COST', 'FIXED_COST', 'CONTRIBUTION_MARGIN', 'OPERATING_PROFIT'])
+  const plLineItems = lineItems.filter((item) => item.account?.code ? plCodes.has(item.account.code) : false)
+
   const chartData = cvp
     ? [{ name: 'Amount', Sales: cvp.sales, 'Variable Cost': cvp.variableCost, 'Fixed Cost': scenario?.fixedCost ?? 0, 'Operating Profit': cvp.operatingProfit }]
     : []
@@ -66,12 +69,22 @@ export function ScenarioDetailPage() {
       {!loading && !error && scenario && cvp && (
         <>
           <div className="mt-4 grid gap-2 rounded-lg bg-slate-50 p-4 text-sm">
+            <p><span className="font-medium">Product / Service:</span> {scenario.productName || 'General'}</p>
             <p><span className="font-medium">Scenario name:</span> {scenario.name}</p>
             <p><span className="font-medium">Target month:</span> {scenario.targetYearMonth}</p>
             <p><span className="font-medium">Status:</span> {scenario.status}</p>
           </div>
 
-          <div className="mt-4 grid gap-2 md:grid-cols-2">
+          <h3 className="mt-5 mb-2 text-base font-medium">Assumptions / Drivers</h3>
+          <div className="grid gap-2 md:grid-cols-2">
+            <Metric label="Unit Price" value={currency(scenario.unitPrice)} />
+            <Metric label="Quantity" value={scenario.quantity.toFixed(2)} />
+            <Metric label="Variable Cost per Unit" value={currency(scenario.variableCostPerUnit)} />
+            <Metric label="Fixed Cost Total" value={currency(scenario.fixedCost)} />
+          </div>
+
+          <h3 className="mt-5 mb-2 text-base font-medium">CVP Result</h3>
+          <div className="grid gap-2 md:grid-cols-2">
             <Metric label="Sales" value={currency(cvp.sales)} />
             <Metric label="Variable Cost" value={currency(cvp.variableCost)} />
             <Metric label="Contribution Margin" value={currency(cvp.contributionMargin)} />
@@ -107,35 +120,31 @@ export function ScenarioDetailPage() {
             ) : <p className="mt-2 text-sm text-slate-600">No fixed cost breakdown. Using total fixed cost only.</p>}
           </div>
           <div className="mt-6">
-            <h3 className="text-base font-medium">Line Items</h3>
+            <h3 className="text-base font-medium">Forecast PL Line Items</h3>
             <div className="mt-2 overflow-x-auto rounded-lg border">
               <table className="min-w-full text-sm">
                 <thead className="bg-slate-50">
                   <tr>
                     <th className="px-3 py-2 text-left">Account</th>
                     <th className="px-3 py-2 text-left">Amount</th>
-                    <th className="px-3 py-2 text-left">Quantity</th>
-                    <th className="px-3 py-2 text-left">Unit price</th>
                     <th className="px-3 py-2 text-left">Organization</th>
                     <th className="px-3 py-2 text-left">Version</th>
                     <th className="px-3 py-2 text-left">Target month</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {lineItems.map((item) => (
+                  {plLineItems.map((item) => (
                     <tr key={item.id} className="border-t">
                       <td className="px-3 py-2">{item.account?.name ?? item.account?.code ?? '-'}</td>
                       <td className="px-3 py-2">{currency(item.amount)}</td>
-                      <td className="px-3 py-2">{item.quantity === null ? '-' : item.quantity.toFixed(2)}</td>
-                      <td className="px-3 py-2">{item.unitPrice === null ? '-' : currency(item.unitPrice)}</td>
                       <td className="px-3 py-2">{item.organization?.name ?? item.organization?.code ?? '-'}</td>
                       <td className="px-3 py-2">{item.version?.name ?? '-'}</td>
                       <td className="px-3 py-2">{item.targetYearMonth}</td>
                     </tr>
                   ))}
-                  {lineItems.length === 0 && (
+                  {plLineItems.length === 0 && (
                     <tr>
-                      <td colSpan={7} className="px-3 py-4 text-center text-slate-500">No line items</td>
+                      <td colSpan={5} className="px-3 py-4 text-center text-slate-500">No line items</td>
                     </tr>
                   )}
                 </tbody>

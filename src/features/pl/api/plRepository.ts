@@ -7,7 +7,7 @@ type FetchPLRowsInput = { organizationId: string; versionId: string; year: numbe
 type ScenarioLineItemAmountRow = { account_id: string; target_year_month: string; amount: string | number }
 
 const toYearMonth = (value: string): string => String(value).slice(0, 7)
-const accountPriority: Record<string, number> = { SALES: 1, VARIABLE_COST: 2, CONTRIBUTION_MARGIN: 3, FIXED_COST: 4, OPERATING_PROFIT: 5, QUANTITY: 6, UNIT_PRICE: 7 }
+const accountPriority: Record<string, number> = { SALES: 1, VARIABLE_COST: 2, CONTRIBUTION_MARGIN: 3, FIXED_COST: 4, OPERATING_PROFIT: 5 }
 
 const requireUserId = async () => {
   const { data, error } = await getSupabaseClient().auth.getUser()
@@ -52,6 +52,6 @@ export async function fetchPLRows({ organizationId, versionId, year }: FetchPLRo
   const profit: PLRow = { accountId: 'derived-operating-profit', accountCode: 'OPERATING_PROFIT', accountName: 'Operating Profit', accountType: 'revenue', cells: months.map((m) => ({ yearMonth: m, amount: get('SALES', m) === null || get('VARIABLE_COST', m) === null || get('FIXED_COST', m) === null ? null : (get('SALES', m) as number) - (get('VARIABLE_COST', m) as number) - (get('FIXED_COST', m) as number) })) }
 
   return [...baseRows, contribution, profit]
-    .filter((r) => ['SALES', 'VARIABLE_COST', 'CONTRIBUTION_MARGIN', 'FIXED_COST', 'OPERATING_PROFIT', 'QUANTITY', 'UNIT_PRICE'].includes(r.accountCode))
+    .filter((r) => ['SALES', 'VARIABLE_COST', 'CONTRIBUTION_MARGIN', 'FIXED_COST', 'OPERATING_PROFIT'].includes(r.accountCode))
     .sort((a, b) => (accountPriority[a.accountCode] ?? 999) - (accountPriority[b.accountCode] ?? 999))
 }

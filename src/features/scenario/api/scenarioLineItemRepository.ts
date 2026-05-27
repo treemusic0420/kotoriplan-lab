@@ -114,7 +114,7 @@ export async function ensureScenarioLineItems(scenarioId: string, fixedCostOverr
     .from('accounts')
     .select('id, code')
     .eq('owner_user_id', ownerUserId)
-    .in('code', ['SALES', 'VARIABLE_COST', 'FIXED_COST', 'QUANTITY', 'UNIT_PRICE'])
+    .in('code', ['SALES', 'VARIABLE_COST', 'FIXED_COST'])
   if (accountsError) throw new Error(`Failed to fetch accounts: ${accountsError.message}`)
 
   const accountByCode = new Map((accounts ?? []).map((row: { id: string; code: string }) => [row.code, row.id]))
@@ -147,8 +147,6 @@ export async function ensureScenarioLineItems(scenarioId: string, fixedCostOverr
     { code: 'SALES', amount: unitPrice * quantity, quantity: null, unit_price: null },
     { code: 'VARIABLE_COST', amount: scenario.variableCostPerUnit * quantity, quantity: null, unit_price: null },
     { code: 'FIXED_COST', amount: fixedCostOverride ?? scenario.fixedCost, quantity: null, unit_price: null },
-    { code: 'QUANTITY', amount: quantity, quantity, unit_price: null },
-    { code: 'UNIT_PRICE', amount: unitPrice, quantity: null, unit_price: unitPrice },
   ]
 
   const missing = rows.map((r) => r.code).filter((code) => !accountByCode.get(code))

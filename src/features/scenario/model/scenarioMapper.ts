@@ -3,6 +3,7 @@ import type { Scenario, ScenarioFormValues } from '../model/types'
 export type ScenarioRow = {
   id: string
   name: string
+  product_name: string | null
   target_year_month: string
   unit_price: number | string
   quantity: number | string
@@ -24,6 +25,7 @@ export const toDbTargetYearMonth = (monthValue: string): string => `${monthValue
 export const mapScenarioRowToModel = (row: ScenarioRow): Scenario => ({
   id: row.id,
   name: row.name,
+  productName: row.product_name?.trim() || 'General',
   targetYearMonth: toMonthInput(row.target_year_month),
   unitPrice: toNumber(row.unit_price),
   quantity: toNumber(row.quantity),
@@ -37,7 +39,8 @@ export const mapScenarioRowToModel = (row: ScenarioRow): Scenario => ({
 })
 
 export const mapFormToInsertPayload = (values: ScenarioFormValues) => ({
-  name: values.name,
+  name: values.name.trim(),
+  product_name: values.productName?.trim() ? values.productName.trim() : null,
   target_year_month: toDbTargetYearMonth(values.targetYearMonth),
   unit_price: values.unitPrice,
   quantity: values.quantity,
