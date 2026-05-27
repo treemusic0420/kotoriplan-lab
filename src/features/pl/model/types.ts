@@ -1,21 +1,6 @@
-import type { AccountType } from '../../master/model/types'
+export type PlDataSource='scenario_forecast'|'sample_pl_facts'
+export type SamplePlFilter={version:string;year:number;organizationKey:string;analysisDimensionId?:string;analysisDimensionValueId?:string}
+export type PlByDimensionFilter={version:string;year:number;month:number;organizationKey:string;analysisDimensionId:string}
 
-export type PLViewFilters = {
-  organizationId: string
-  versionId: string
-  year: number
-}
-
-export type PLCell = {
-  yearMonth: string
-  amount: number | null
-}
-
-export type PLRow = {
-  accountId: string
-  accountCode: string
-  accountName: string
-  accountType: AccountType
-  cells: PLCell[]
-}
-
+export type PLCell={yearMonth:string; amount:number|null}
+export type PLRow={accountId:string;accountCode:string;accountName:string;accountType:string;cells:PLCell[]}

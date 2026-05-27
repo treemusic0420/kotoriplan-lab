@@ -6,6 +6,8 @@ import { ScenarioDetailPage } from '../../pages/ScenarioDetailPage'
 import { ScenarioComparePage } from '../../pages/ScenarioComparePage'
 import { TagManagementPage } from '../../pages/TagManagementPage'
 import { PLViewPage } from '../../pages/PLViewPage'
+import { AnalysisDimensionsPage } from '../../pages/AnalysisDimensionsPage'
+import { PLByDimensionPage } from '../../pages/PLByDimensionPage'
 import { AuthPage } from '../../pages/AuthPage'
 import { RequireAuth } from '../../features/auth/RequireAuth'
 
@@ -23,6 +25,8 @@ export function AppRouter() {
         <Route path="/compare" element={<RequireAuth><ScenarioComparePage /></RequireAuth>} />
         <Route path="/tags" element={<RequireAuth><TagManagementPage /></RequireAuth>} />
         <Route path="/pl" element={<RequireAuth><PLViewPage /></RequireAuth>} />
+        <Route path="/dimensions" element={<RequireAuth><AnalysisDimensionsPage /></RequireAuth>} />
+        <Route path="/pl/by-dimension" element={<RequireAuth><PLByDimensionPage /></RequireAuth>} />
       </Routes>
     </AppShell>
   )
