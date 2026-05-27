@@ -21,15 +21,15 @@ export function TagManagementPage() {
   }
 
   return <section className="rounded-xl bg-white p-6 shadow-sm">
-    <h2 className="text-lg font-medium">Tag Management</h2>
-    <p className="mt-1 text-sm text-slate-600">Create, edit, and delete personal tags for scenarios.</p>
+    <h2 className="text-lg font-medium">Scenario Labels</h2>
+    <p className="mt-1 text-sm text-slate-600">Create, edit, and delete labels for organizing scenarios.</p>
     <div className="mt-4 flex gap-2">
-      <input className="flex-1 rounded-md border px-3 py-2" placeholder="New tag name" value={name} onChange={(e) => setName(e.target.value)} />
-      <button onClick={() => void onCreate()} disabled={saving} className="rounded-md bg-slate-900 px-3 py-2 text-sm text-white disabled:opacity-50">{saving ? 'Saving...' : 'Add Tag'}</button>
+      <input className="flex-1 rounded-md border px-3 py-2" placeholder="New label name" value={name} onChange={(e) => setName(e.target.value)} />
+      <button onClick={() => void onCreate()} disabled={saving} className="rounded-md bg-slate-900 px-3 py-2 text-sm text-white disabled:opacity-50">{saving ? 'Saving...' : 'Add Label'}</button>
     </div>
-    {loading && <p className="mt-4 text-sm text-slate-600">Loading tags...</p>}
+    {loading && <p className="mt-4 text-sm text-slate-600">Loading labels...</p>}
     {error && <p className="mt-4 rounded-md bg-rose-50 p-3 text-sm text-rose-700">{error}</p>}
-    {!loading && !error && tags.length === 0 && <p className="mt-4 text-sm text-slate-600">No tags yet.</p>}
+    {!loading && !error && tags.length === 0 && <p className="mt-4 text-sm text-slate-600">No labels yet.</p>}
     <div className="mt-4 space-y-2">
       {tags.map((tag) => <TagRow key={tag.id} tag={tag} onUpdated={load} onError={setError} />)}
     </div>

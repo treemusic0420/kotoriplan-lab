@@ -6,7 +6,9 @@ const links = [
   { to: '/scenarios', label: 'Scenario List' },
   { to: '/scenarios/new', label: 'Scenario Editor' },
   { to: '/compare', label: 'Scenario Compare' },
-  { to: '/tags', label: 'Tag Management' },
+  { to: '/tags', label: 'Scenario Labels' },
+  { to: '/dimensions', label: 'Analysis Dimensions' },
+  { to: '/pl/by-dimension', label: 'PL by Dimension' },
   { to: '/pl', label: 'PL View' },
 ]
 

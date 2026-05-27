@@ -14,23 +14,23 @@ const requireUserId = async () => {
 export async function listTags(): Promise<Tag[]> {
   const ownerUserId = await requireUserId()
   const { data, error } = await getSupabaseClient().from('tags').select('id,name,created_at,updated_at').eq('owner_user_id', ownerUserId).order('name').returns<TagRow[]>()
-  if (error) throw new Error(`Failed to list tags: ${error.message}`)
+  if (error) throw new Error(`Failed to list labels: ${error.message}`)
   return (data ?? []).map(toTag)
 }
 export async function createTag(name: string): Promise<Tag> {
   const ownerUserId = await requireUserId()
   const { data, error } = await (getSupabaseClient().from('tags') as any).insert({ name, owner_user_id: ownerUserId }).select('id,name,created_at,updated_at').single()
-  if (error) throw new Error(`Failed to create tag: ${error.message}`)
+  if (error) throw new Error(`Failed to create label: ${error.message}`)
   return toTag(data as TagRow)
 }
 export async function updateTag(id: string, name: string): Promise<Tag> {
   const ownerUserId = await requireUserId()
   const { data, error } = await (getSupabaseClient().from('tags') as any).update({ name }).eq('id', id).eq('owner_user_id', ownerUserId).select('id,name,created_at,updated_at').single()
-  if (error) throw new Error(`Failed to update tag: ${error.message}`)
+  if (error) throw new Error(`Failed to update label: ${error.message}`)
   return toTag(data as TagRow)
 }
 export async function deleteTag(id: string): Promise<void> {
   const ownerUserId = await requireUserId()
   const { error } = await getSupabaseClient().from('tags').delete().eq('id', id).eq('owner_user_id', ownerUserId)
-  if (error) throw new Error(`Failed to delete tag: ${error.message}`)
+  if (error) throw new Error(`Failed to delete label: ${error.message}`)
 }

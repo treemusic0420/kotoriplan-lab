@@ -1,0 +1,1 @@
+export const sampleDimensions=[{key:'product',name:'Product',values:['Product A','Product B','Product C']},{key:'customer',name:'Customer',values:['ABC Trading','XYZ Foods','Sakura Retail']},{key:'channel',name:'Channel',values:['Online','Store','Partner']},{key:'region',name:'Region',values:['Tokyo','Osaka','Bangkok']}]
