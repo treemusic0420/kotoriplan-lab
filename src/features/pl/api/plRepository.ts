@@ -15,6 +15,8 @@ type ScenarioLineItemAmountRow = {
   amount: string | number
 }
 
+const toYearMonth = (value: string): string => String(value).slice(0, 7)
+
 const accountTypeOrder: Record<PLRow['accountType'], number> = {
   revenue: 0,
   variable_cost: 1,
@@ -73,8 +75,8 @@ export async function fetchPLRows({ organizationId, versionId, year }: FetchPLRo
       .eq('owner_user_id', ownerUserId)
       .eq('organization_id', organizationId)
       .eq('version_id', versionId)
-      .gte('target_year_month', `${year}-01`)
-      .lte('target_year_month', `${year}-12`),
+      .gte('target_year_month', `${year}-01-01`)
+      .lte('target_year_month', `${year}-12-31`),
   ])
 
   if (lineItemsResult.error) throw new Error(`Failed to fetch PL rows: ${lineItemsResult.error.message}`)
@@ -83,7 +85,7 @@ export async function fetchPLRows({ organizationId, versionId, year }: FetchPLRo
   const sums = new Map<string, number>()
 
   for (const item of lineItems) {
-    const key = `${item.account_id}::${item.target_year_month}`
+    const key = `${item.account_id}::${toYearMonth(item.target_year_month)}`
     const amount = Number(item.amount)
     sums.set(key, (sums.get(key) ?? 0) + amount)
   }
