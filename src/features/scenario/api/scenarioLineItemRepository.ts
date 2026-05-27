@@ -137,19 +137,19 @@ export async function ensureScenarioLineItems(scenarioId: string): Promise<void>
 
   let versionId = defaultVersion?.id
   if (!versionId) {
-    const { data: actualVersion, error: actualVersionError } = await supabase
+    const { data: forecastVersion, error: forecastVersionError } = await supabase
       .from('versions')
       .select('id')
       .eq('owner_user_id', ownerUserId)
-      .eq('version_type', 'actual')
+      .eq('version_type', 'forecast')
       .order('sort_order', { ascending: true })
       .limit(1)
       .maybeSingle<{ id: string }>()
-    if (actualVersionError) throw new Error(`Failed to resolve actual version: ${actualVersionError.message}`)
-    versionId = actualVersion?.id
+    if (forecastVersionError) throw new Error(`Failed to resolve forecast version: ${forecastVersionError.message}`)
+    versionId = forecastVersion?.id
   }
 
-  if (!versionId) throw new Error('Default/actual version not found')
+  if (!versionId) throw new Error('Default/forecast version not found')
 
   const quantity = scenario.quantity
   const unitPrice = scenario.unitPrice
