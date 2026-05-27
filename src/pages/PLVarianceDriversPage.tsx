@@ -67,6 +67,7 @@ export function PLVarianceDriversPage() {
     {error && <p className='mt-3 text-rose-600'>Failed to load variance drivers: {error}</p>}
     {data && data.rawCount === 0 && <p className='mt-3 text-sm text-slate-600'>No PL facts found. Load sample PL data first.</p>}
     {data && data.rawCount > 0 && data.rows.length === 0 && <p className='mt-3 text-sm text-slate-600'>No variance drivers found for selected filters.</p>}
+    {analysisAxis === 'all_axes' && <p className='mt-3 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900'>All Axes ranks each dimension independently. Values are not additive across axes.</p>}
 
     {[{ title: 'Top Unfavorable Drivers', rows: data?.topUnfavorable ?? [] }, { title: 'Top Favorable Drivers', rows: data?.topFavorable ?? [] }].map((section) => (
       <div className='mt-6' key={section.title}>

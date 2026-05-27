@@ -7,52 +7,88 @@ export const sampleDimensions = [
   { key: 'region', name: 'Region', values: ['Tokyo', 'Osaka', 'Bangkok'] }
 ]
 
-type Ctx = { month: number; version: 'actual' | 'budget' | 'forecast'; idx: number }
-
-const monthSeasonality = [0.94, 0.96, 0.99, 1.02, 1.05, 1.1]
-const versionScale = { actual: 1, budget: 1.04, forecast: 0.98 }
-const productSales = [150000, 105000, 70000]
-const channelFactor = [1.06, 1, 0.92]
-const regionFactor = [1.1, 1, 0.95]
+type Version = 'actual' | 'budget' | 'forecast'
+type Ctx = { month: number; version: Version; idx: number }
 
 const calc = (v: number) => Math.round(v * 100) / 100
+const monthSeasonality = [0.95, 0.97, 1.0, 1.03, 1.06, 1.1]
+
+// idx is shared across Product/Customer/Channel/Region in this sample dataset.
+// 0 => Product A / ABC Trading / Online / Tokyo
+// 1 => Product B / XYZ Foods / Store / Osaka
+// 2 => Product C / Sakura Retail / Partner / Bangkok
+const planProfile = [
+  { baseSales: 190_000, returnsRate: 0.028, variableMult: 0.92, fixedMult: 0.94 },
+  { baseSales: 160_000, returnsRate: 0.04, variableMult: 1.03, fixedMult: 1.0 },
+  { baseSales: 120_000, returnsRate: 0.048, variableMult: 1.08, fixedMult: 1.12 }
+] as const
+
+const actualDelta = [
+  { sales: 1.08, returnsBps: -0.004, variableMult: -0.03, fixedMult: -0.02 },
+  { sales: 0.92, returnsBps: +0.007, variableMult: +0.09, fixedMult: +0.06 },
+  { sales: 0.99, returnsBps: +0.001, variableMult: -0.04, fixedMult: +0.08 }
+] as const
+
+const forecastBlend = [
+  { salesVsBudget: 1.05, returnsBps: -0.003, variableMult: -0.02, fixedMult: -0.01 },
+  { salesVsBudget: 0.96, returnsBps: +0.004, variableMult: +0.05, fixedMult: +0.03 },
+  { salesVsBudget: 1.01, returnsBps: 0, variableMult: -0.02, fixedMult: +0.03 }
+] as const
+
+function resolveProfile(ctx: Ctx) {
+  const p = planProfile[ctx.idx]
+  if (ctx.version === 'budget') return p
+  if (ctx.version === 'actual') {
+    const d = actualDelta[ctx.idx]
+    return {
+      baseSales: p.baseSales * d.sales,
+      returnsRate: p.returnsRate + d.returnsBps,
+      variableMult: p.variableMult * (1 + d.variableMult),
+      fixedMult: p.fixedMult * (1 + d.fixedMult)
+    }
+  }
+  const f = forecastBlend[ctx.idx]
+  return {
+    baseSales: p.baseSales * f.salesVsBudget,
+    returnsRate: p.returnsRate + f.returnsBps,
+    variableMult: p.variableMult * (1 + f.variableMult),
+    fixedMult: p.fixedMult * (1 + f.fixedMult)
+  }
+}
 
 export function buildSampleAccountAmounts(ctx: Ctx) {
+  const profile = resolveProfile(ctx)
   const seasonality = monthSeasonality[ctx.month - 1] ?? 1
-  const baseSales = productSales[ctx.idx] * seasonality * versionScale[ctx.version] * channelFactor[ctx.idx] * regionFactor[ctx.idx]
-
-  const returnsRate = [0.035, 0.045, 0.05][ctx.idx]
-  const netSales = calc(baseSales)
-  const salesReturnsDiscounts = calc(netSales * returnsRate)
+  const netSales = calc(profile.baseSales * seasonality)
+  const salesReturnsDiscounts = calc(netSales * profile.returnsRate)
   const totalRevenue = calc(netSales - salesReturnsDiscounts)
 
   const variableRates = [
-    { k: 'material_cost', r: 0.2 },
-    { k: 'purchase_cost', r: 0.08 },
-    { k: 'direct_labor_cost', r: 0.09 },
-    { k: 'outsourcing_cost', r: 0.05 },
-    { k: 'payment_processing_fee', r: 0.018 },
-    { k: 'shipping_fulfillment_cost', r: 0.028 }
+    { k: 'material_cost', r: 0.21 },
+    { k: 'purchase_cost', r: 0.085 },
+    { k: 'direct_labor_cost', r: 0.092 },
+    { k: 'outsourcing_cost', r: 0.052 },
+    { k: 'payment_processing_fee', r: 0.02 },
+    { k: 'shipping_fulfillment_cost', r: 0.031 }
   ] as const
-  const profileMultiplier = [0.9, 1.2, 1.05][ctx.idx]
-  const variable = Object.fromEntries(variableRates.map((x) => [x.k, calc(totalRevenue * x.r * profileMultiplier)])) as Record<string, number>
+  const variable = Object.fromEntries(variableRates.map((x) => [x.k, calc(totalRevenue * x.r * profile.variableMult)])) as Record<string, number>
   const totalVariableCost = calc(Object.values(variable).reduce((s, n) => s + n, 0))
   const grossProfit = calc(totalRevenue - totalVariableCost)
   const contributionMargin = grossProfit
 
   const fixedRates = [
-    { k: 'salaries_wages', r: 0.12 },
-    { k: 'rent', r: 0.045 },
-    { k: 'utilities', r: 0.012 },
-    { k: 'software_subscription', r: 0.008 },
-    { k: 'advertising_promotion', r: 0.03 },
-    { k: 'travel_transportation', r: 0.01 },
+    { k: 'salaries_wages', r: 0.11 },
+    { k: 'rent', r: 0.042 },
+    { k: 'utilities', r: 0.013 },
+    { k: 'software_subscription', r: 0.009 },
+    { k: 'advertising_promotion', r: 0.028 },
+    { k: 'travel_transportation', r: 0.011 },
     { k: 'communication_expense', r: 0.006 },
-    { k: 'professional_fees', r: 0.008 },
-    { k: 'depreciation', r: 0.009 },
+    { k: 'professional_fees', r: 0.009 },
+    { k: 'depreciation', r: 0.011 },
     { k: 'other_sga', r: 0.012 }
   ] as const
-  const fixed = Object.fromEntries(fixedRates.map((x) => [x.k, calc(totalRevenue * x.r)])) as Record<string, number>
+  const fixed = Object.fromEntries(fixedRates.map((x) => [x.k, calc(totalRevenue * x.r * profile.fixedMult)])) as Record<string, number>
   const totalFixedCost = calc(Object.values(fixed).reduce((s, n) => s + n, 0))
   const totalSga = totalFixedCost
   const operatingProfit = calc(contributionMargin - totalSga)
