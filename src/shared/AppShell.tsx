@@ -13,6 +13,7 @@ const links = [
   { to: '/pl/variance', label: 'PL Variance' },
   { to: '/pl/variance-drivers', label: 'Variance Drivers' },
   { to: '/pl/bridge', label: 'PL Bridge' },
+  { to: '/pl/ratios', label: 'Ratio Analysis' },
 ]
 
 export function AppShell({ children }: { children: ReactNode }) {
