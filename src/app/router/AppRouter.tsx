@@ -5,18 +5,21 @@ import { ScenarioEditorPage } from '../../pages/ScenarioEditorPage'
 import { ScenarioDetailPage } from '../../pages/ScenarioDetailPage'
 import { ScenarioComparePage } from '../../pages/ScenarioComparePage'
 import { TagManagementPage } from '../../pages/TagManagementPage'
+import { AuthPage } from '../../pages/AuthPage'
+import { RequireAuth } from '../../features/auth/RequireAuth'
 
 export function AppRouter() {
   return (
     <AppShell>
       <Routes>
         <Route path="/" element={<Navigate to="/scenarios" replace />} />
-        <Route path="/scenarios" element={<ScenarioListPage />} />
-        <Route path="/scenarios/new" element={<ScenarioEditorPage />} />
-        <Route path="/scenarios/:id" element={<ScenarioDetailPage />} />
-        <Route path="/scenarios/compare" element={<ScenarioComparePage />} />
-        <Route path="/compare" element={<ScenarioComparePage />} />
-        <Route path="/tags" element={<TagManagementPage />} />
+        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/scenarios" element={<RequireAuth><ScenarioListPage /></RequireAuth>} />
+        <Route path="/scenarios/new" element={<RequireAuth><ScenarioEditorPage /></RequireAuth>} />
+        <Route path="/scenarios/:id" element={<RequireAuth><ScenarioDetailPage /></RequireAuth>} />
+        <Route path="/scenarios/compare" element={<RequireAuth><ScenarioComparePage /></RequireAuth>} />
+        <Route path="/compare" element={<RequireAuth><ScenarioComparePage /></RequireAuth>} />
+        <Route path="/tags" element={<RequireAuth><TagManagementPage /></RequireAuth>} />
       </Routes>
     </AppShell>
   )

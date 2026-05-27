@@ -12,6 +12,7 @@ export type ScenarioRow = {
   status: 'draft' | 'final'
   created_at: string
   updated_at: string
+  owner_user_id: string | null
 }
 
 const toNumber = (value: string | number): number => Number(value)
