@@ -53,6 +53,7 @@ export async function loadSamplePlData() {
           const { data: fact } = await (getSupabaseClient().from('pl_facts') as any)
             .insert({
               owner_user_id: u,
+              organization_key: 'all',
               account_key: row.accountKey,
               account_name: row.accountName,
               account_type: row.accountType,
@@ -80,9 +81,23 @@ export async function loadSamplePlData() {
 
 export async function aggregateMonthlyPl(f: SamplePlFilter) {
   const u = await req()
-  let q: any = getSupabaseClient().from('pl_facts').select('id,account_key,account_name,target_month,amount,sort_order').eq('owner_user_id', u).eq('version', f.version).eq('organization_key', f.organizationKey).gte('target_month', `${f.year}-01-01`).lte('target_month', `${f.year}-12-31`)
+  let q: any = getSupabaseClient()
+    .from('pl_facts')
+    .select('id,account_key,account_name,target_month,amount,sort_order')
+    .eq('owner_user_id', u)
+    .eq('is_sample', true)
+    .eq('version', f.version)
+    .eq('organization_key', f.organizationKey)
+    .gte('target_month', `${f.year}-01-01`)
+    .lte('target_month', `${f.year}-12-31`)
   if (f.analysisDimensionId && f.analysisDimensionValueId) {
-    const { data: links } = await getSupabaseClient().from('pl_fact_dimension_values').select('pl_fact_id').eq('owner_user_id', u).eq('analysis_dimension_id', f.analysisDimensionId).eq('analysis_dimension_value_id', f.analysisDimensionValueId)
+    const { data: links } = await getSupabaseClient()
+      .from('pl_fact_dimension_values')
+      .select('pl_fact_id')
+      .eq('owner_user_id', u)
+      .eq('is_sample', true)
+      .eq('analysis_dimension_id', f.analysisDimensionId)
+      .eq('analysis_dimension_value_id', f.analysisDimensionValueId)
     q = q.in('id', (links ?? []).map((x: any) => x.pl_fact_id))
   }
   const { data, error } = await q
@@ -92,7 +107,17 @@ export async function aggregateMonthlyPl(f: SamplePlFilter) {
 
 export async function aggregatePlByDimension(f: PlByDimensionFilter) {
   const u = await req()
-  const { data, error } = await getSupabaseClient().from('pl_fact_dimension_values').select('analysis_dimension_value_id,analysis_dimension_values(name),pl_facts!inner(account_key,account_name,amount)').eq('owner_user_id', u).eq('analysis_dimension_id', f.analysisDimensionId).eq('pl_facts.owner_user_id', u).eq('pl_facts.version', f.version).eq('pl_facts.organization_key', f.organizationKey).eq('pl_facts.target_month', `${f.year}-${String(f.month).padStart(2, '0')}-01`)
+  const { data, error } = await getSupabaseClient()
+    .from('pl_fact_dimension_values')
+    .select('analysis_dimension_value_id,analysis_dimension_values(name),pl_facts!inner(account_key,account_name,amount)')
+    .eq('owner_user_id', u)
+    .eq('is_sample', true)
+    .eq('analysis_dimension_id', f.analysisDimensionId)
+    .eq('pl_facts.owner_user_id', u)
+    .eq('pl_facts.is_sample', true)
+    .eq('pl_facts.version', f.version)
+    .eq('pl_facts.organization_key', f.organizationKey)
+    .eq('pl_facts.target_month', `${f.year}-${String(f.month).padStart(2, '0')}-01`)
   if (error) throw new Error(`Failed to load PL facts: ${error.message}`)
   return data ?? []
 }
