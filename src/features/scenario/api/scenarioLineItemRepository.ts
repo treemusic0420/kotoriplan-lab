@@ -198,7 +198,7 @@ export async function upsertScenarioLineItems(items: ScenarioLineItemUpsertInput
   if (items.length === 0) return
   const supabase = getSupabaseClient()
   const payload = items.map((item) => ({
-    id: item.id,
+    ...(item.id ? { id: item.id } : {}),
     owner_user_id: item.ownerUserId,
     scenario_id: item.scenarioId,
     account_id: item.accountId,
@@ -215,5 +215,16 @@ export async function upsertScenarioLineItems(items: ScenarioLineItemUpsertInput
   const { error } = await (supabase.from('scenario_line_items') as any).upsert(payload, {
     onConflict: 'scenario_id,account_id,organization_id,version_id,target_year_month',
   })
-  if (error) throw new Error(`Failed to upsert scenario line items: ${error.message}`)
+
+  if (error) {
+    const details = [error.message, error.details, error.hint].filter(Boolean).join(' | ')
+    console.error('Failed to upsert scenario line items', {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code,
+      payload,
+    })
+    throw new Error(`Failed to upsert scenario line items: ${details}`)
+  }
 }
