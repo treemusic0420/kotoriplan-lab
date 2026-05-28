@@ -1,7 +1,7 @@
 import { getSupabaseClient } from '../../../infra/supabase/client'
 import { fetchAccounts, fetchOrganizations, fetchVersions } from '../../master/api/masterRepository'
 import type { Organization, Version } from '../../master/model/types'
-import type { PLRow } from '../model/types'
+import type { PLRow, PLSummary } from '../model/types'
 
 type FetchPLRowsInput = { organizationId: string; versionId: string; year: number }
 type ScenarioLineItemAmountRow = { account_id: string; target_year_month: string; amount: string | number }
@@ -54,4 +54,30 @@ export async function fetchPLRows({ organizationId, versionId, year }: FetchPLRo
   return [...baseRows, contribution, profit]
     .filter((r) => ['SALES', 'VARIABLE_COST', 'CONTRIBUTION_MARGIN', 'FIXED_COST', 'OPERATING_PROFIT'].includes(r.accountCode))
     .sort((a, b) => (accountPriority[a.accountCode] ?? 999) - (accountPriority[b.accountCode] ?? 999))
+}
+
+const sumRowAmount = (rows: PLRow[], accountCode: string): number => {
+  const row = rows.find((r) => r.accountCode === accountCode)
+  if (!row) return 0
+  return row.cells.reduce((acc, cell) => acc + Number(cell.amount ?? 0), 0)
+}
+
+export function calculatePLSummary(rows: PLRow[]): PLSummary {
+  const totalRevenue = sumRowAmount(rows, 'SALES')
+  const totalVariableCost = sumRowAmount(rows, 'VARIABLE_COST')
+  const totalFixedCost = sumRowAmount(rows, 'FIXED_COST')
+  const contributionMargin = totalRevenue - totalVariableCost
+  const operatingProfit = contributionMargin - totalFixedCost
+  const contributionMarginPct = totalRevenue === 0 ? null : contributionMargin / totalRevenue
+  const operatingMarginPct = totalRevenue === 0 ? null : operatingProfit / totalRevenue
+
+  return {
+    totalRevenue,
+    totalVariableCost,
+    contributionMargin,
+    contributionMarginPct,
+    totalFixedCost,
+    operatingProfit,
+    operatingMarginPct,
+  }
 }
