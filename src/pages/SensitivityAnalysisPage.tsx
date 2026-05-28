@@ -86,32 +86,39 @@ export function SensitivityAnalysisPage() {
     })
   }, [inputs, sensitivityDriver])
 
-  const biggestProfitLever = useMemo(() => {
-    const impacts = sensitivityDriverOptions.map(({ key, label }) => {
+  const tornadoImpacts = useMemo(() => {
+    return sensitivityDriverOptions.map(({ key, label }) => {
       const upInputs = { ...inputs, [key]: inputs[key] * 1.1 }
       const downInputs = { ...inputs, [key]: inputs[key] * 0.9 }
       const upProfit = calculateMetrics(upInputs).operatingProfit
       const downProfit = calculateMetrics(downInputs).operatingProfit
+      const positiveImpact = upProfit - baseMetrics.operatingProfit
+      const negativeImpact = downProfit - baseMetrics.operatingProfit
+      const impactRange = Math.max(Math.abs(positiveImpact), Math.abs(negativeImpact))
 
-      return { label, impact: Math.abs(upProfit - downProfit) }
-    })
+      return { label, positiveImpact, negativeImpact, impactRange }
+    }).sort((a, b) => b.impactRange - a.impactRange)
+  }, [inputs, baseMetrics.operatingProfit])
 
-    return impacts.reduce((best, current) => (current.impact > best.impact ? current : best), impacts[0])
-  }, [inputs])
+  const maxImpactRange = tornadoImpacts[0]?.impactRange ?? 1
+  const biggestProfitLever = tornadoImpacts[0]
 
   const dynamicInsight = useMemo(() => {
     if (baseMetrics.operatingMarginRate !== null && baseMetrics.operatingMarginRate < 0) {
       return 'Your business becomes unprofitable under this scenario.'
     }
 
-    const aspImpact = (() => {
-      const upInputs = { ...inputs, averageSellingPrice: inputs.averageSellingPrice * 1.1 }
-      const downInputs = { ...inputs, averageSellingPrice: inputs.averageSellingPrice * 0.9 }
-      return Math.abs(calculateMetrics(upInputs).operatingProfit - calculateMetrics(downInputs).operatingProfit)
-    })()
-
-    if (Math.abs(baseMetrics.revenue) > 0 && aspImpact / Math.abs(baseMetrics.revenue) > 0.2) {
+    if (biggestProfitLever?.label === 'Average Selling Price') {
       return 'This business is highly sensitive to pricing changes.'
+    }
+    if (biggestProfitLever?.label === 'Customers' || biggestProfitLever?.label === 'Orders per Customer') {
+      return 'Volume growth is the key profit lever in this scenario.'
+    }
+    if (biggestProfitLever?.label === 'Headcount' || biggestProfitLever?.label === 'Salary per Employee') {
+      return 'Fixed workforce cost is the key profit lever in this scenario.'
+    }
+    if (biggestProfitLever?.label === 'Variable Cost per Order') {
+      return 'Variable cost efficiency is the key profit lever in this scenario.'
     }
 
     if (baseMetrics.revenue > 0 && baseMetrics.fixedCost / baseMetrics.revenue > 0.35) {
@@ -119,7 +126,7 @@ export function SensitivityAnalysisPage() {
     }
 
     return 'Use one-driver-at-a-time simulation to focus discussion on the biggest levers.'
-  }, [baseMetrics, inputs])
+  }, [baseMetrics, biggestProfitLever])
 
   const onInputChange = (key: keyof DriverInputState, value: string) => {
     const numeric = Number(value)
@@ -219,9 +226,44 @@ export function SensitivityAnalysisPage() {
         </table>
       </article>
 
+      <article className='mt-4 rounded-lg border border-slate-200 bg-white p-4'>
+        <h3 className='text-sm font-semibold text-slate-800'>Tornado Chart</h3>
+        <p className='mt-1 text-sm text-slate-600'>Compare the operating profit impact of changing each driver by ±10%.</p>
+        <div className='mt-3 space-y-3'>
+          {tornadoImpacts.map((impact) => {
+            const negativeWidth = `${(Math.abs(impact.negativeImpact) / maxImpactRange) * 100}%`
+            const positiveWidth = `${(Math.abs(impact.positiveImpact) / maxImpactRange) * 100}%`
+            const negativeIsGood = impact.negativeImpact >= 0
+            const positiveIsGood = impact.positiveImpact >= 0
+
+            return (
+              <div key={impact.label} className='rounded border border-slate-100 p-3'>
+                <div className='flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between'>
+                  <div className='text-sm font-medium text-slate-800'>{impact.label}</div>
+                  <div className='text-xs text-slate-600'>
+                    -10% impact: <span className={negativeIsGood ? 'text-emerald-700' : 'text-rose-700'}>{moneyFormatter.format(impact.negativeImpact)}</span>
+                    <span className='mx-2 text-slate-400'>|</span>
+                    +10% impact: <span className={positiveIsGood ? 'text-emerald-700' : 'text-rose-700'}>{moneyFormatter.format(impact.positiveImpact)}</span>
+                  </div>
+                </div>
+                <div className='mt-2 grid grid-cols-[1fr_auto_1fr] items-center gap-2'>
+                  <div className='flex justify-end'>
+                    <div className={`h-4 rounded-l ${negativeIsGood ? 'bg-emerald-500' : 'bg-rose-500'}`} style={{ width: negativeWidth }} />
+                  </div>
+                  <div className='h-5 w-px bg-slate-400' aria-label='Base line' />
+                  <div className='flex'>
+                    <div className={`h-4 rounded-r ${positiveIsGood ? 'bg-emerald-500' : 'bg-rose-500'}`} style={{ width: positiveWidth }} />
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </article>
+
       <article className='mt-4 rounded-lg border border-violet-200 bg-violet-50 p-4'>
         <h3 className='text-sm font-semibold text-violet-800'>Biggest Profit Lever</h3>
-        <p className='mt-1 text-sm text-violet-900'>{biggestProfitLever.label} has the strongest impact on operating profit.</p>
+        <p className='mt-1 text-sm text-violet-900'>{biggestProfitLever?.label} has the strongest impact on operating profit based on ±10% sensitivity.</p>
       </article>
 
       <article className='mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4'>
