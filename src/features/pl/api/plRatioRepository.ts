@@ -20,12 +20,15 @@ const req = async () => {
 const sumKeys = (rows: FactRow[], key: string) => rows.filter((r) => r.account_key === key).reduce((s, r) => s + Number(r.amount), 0)
 const ratio = (n: number, d: number) => (d === 0 ? null : n / d)
 
+const normalizeMonthToDate = (month: string) => `${month.slice(0, 7)}-01`
+const isAll = (value: string) => value.trim().toLowerCase() === 'all'
+
 function buildMetrics(rows: FactRow[]) {
-  const totalRevenue = sumKeys(rows, 'sales')
-  const totalVariableCost = sumKeys(rows, 'variable_cost')
-  const grossProfit = sumKeys(rows, 'contribution_margin')
-  const contributionMargin = grossProfit
-  const totalSga = sumKeys(rows, 'fixed_cost')
+  const totalRevenue = sumKeys(rows, 'total_revenue')
+  const totalVariableCost = sumKeys(rows, 'total_variable_cost')
+  const grossProfit = sumKeys(rows, 'gross_profit')
+  const contributionMargin = sumKeys(rows, 'contribution_margin')
+  const totalSga = sumKeys(rows, 'total_sga')
   const operatingProfit = sumKeys(rows, 'operating_profit')
   return {
     totalRevenue, totalVariableCost, grossProfit, contributionMargin, totalSga, operatingProfit,
@@ -38,7 +41,7 @@ function buildMetrics(rows: FactRow[]) {
 }
 
 async function resolveDimensionId(ownerUserId: string, analysisDimensionKey: string) {
-  if (analysisDimensionKey === 'all') return null
+  if (isAll(analysisDimensionKey)) return null
   const { data, error } = await getSupabaseClient().from('analysis_dimensions').select('id,key').eq('owner_user_id', ownerUserId)
   if (error) throw new Error(`Failed to load analysis dimensions: ${error.message}`)
   const matched = ((data ?? []) as any[]).find((d: any) => String(d.key).toLowerCase() === analysisDimensionKey)
@@ -46,15 +49,17 @@ async function resolveDimensionId(ownerUserId: string, analysisDimensionKey: str
 }
 
 async function fetchFacts(filters: PlRatioFilters, ownerUserId: string) {
-  let q: any = getSupabaseClient().from('pl_facts').select('id,account_key,amount,target_month').eq('owner_user_id', ownerUserId).eq('is_sample', true).eq('version', filters.version).eq('organization_key', filters.organizationKey)
+  let q: any = getSupabaseClient().from('pl_facts').select('id,account_key,amount,target_month').eq('owner_user_id', ownerUserId).eq('is_sample', true).ilike('version', filters.version)
 
-  if (filters.month === 'all') q = q.gte('target_month', `${filters.year}-01-01`).lte('target_month', `${filters.year}-12-31`)
-  else q = q.eq('target_month', `${filters.month}-01`)
+  if (!isAll(filters.organizationKey)) q = q.eq('organization_key', filters.organizationKey)
+
+  if (isAll(filters.month)) q = q.gte('target_month', `${filters.year}-01-01`).lte('target_month', `${filters.year}-12-31`)
+  else q = q.eq('target_month', normalizeMonthToDate(filters.month))
 
   const dimId = await resolveDimensionId(ownerUserId, filters.analysisDimensionKey)
   if (dimId) {
     let linkQuery: any = getSupabaseClient().from('pl_fact_dimension_values').select('pl_fact_id').eq('owner_user_id', ownerUserId).eq('analysis_dimension_id', dimId)
-    if (filters.analysisDimensionValueId !== 'all') linkQuery = linkQuery.eq('analysis_dimension_value_id', filters.analysisDimensionValueId)
+    if (!isAll(filters.analysisDimensionValueId)) linkQuery = linkQuery.eq('analysis_dimension_value_id', filters.analysisDimensionValueId)
     const { data: links, error: linkError } = await linkQuery
     if (linkError) throw new Error(`Failed to load ratio dimension filters: ${linkError.message}`)
     const ids = Array.from(new Set((links ?? []).map((x: any) => x.pl_fact_id)))
@@ -90,7 +95,7 @@ export async function fetchPlRatioRanking(filters: PlRatioFilters) {
   if (!dimId) return []
 
   let linkQuery: any = getSupabaseClient().from('pl_fact_dimension_values').select('pl_fact_id,analysis_dimension_value_id,analysis_dimension_values(name)').eq('owner_user_id', userId).eq('analysis_dimension_id', dimId)
-  if (filters.analysisDimensionValueId !== 'all') linkQuery = linkQuery.eq('analysis_dimension_value_id', filters.analysisDimensionValueId)
+  if (!isAll(filters.analysisDimensionValueId)) linkQuery = linkQuery.eq('analysis_dimension_value_id', filters.analysisDimensionValueId)
   const { data: links, error: linksError } = await linkQuery
   if (linksError) throw new Error(`Failed to load ratio ranking: ${linksError.message}`)
   const linkRows = (links ?? []) as any[]
