@@ -16,6 +16,7 @@ import { PLRatioAnalysisPage } from '../../pages/PLRatioAnalysisPage'
 import { LearningPathPage } from '../../pages/LearningPathPage'
 import { DriverPlanningPage } from '../../pages/DriverPlanningPage'
 import { SensitivityAnalysisPage } from '../../pages/SensitivityAnalysisPage'
+import { BreakEvenAnalysisPage } from '../../pages/BreakEvenAnalysisPage'
 import { RequireAuth } from '../../features/auth/RequireAuth'
 
 export function AppRouter() {
@@ -41,6 +42,7 @@ export function AppRouter() {
         <Route path="/learning-path" element={<RequireAuth><LearningPathPage /></RequireAuth>} />
         <Route path="/drivers" element={<RequireAuth><DriverPlanningPage /></RequireAuth>} />
         <Route path="/drivers/sensitivity" element={<RequireAuth><SensitivityAnalysisPage /></RequireAuth>} />
+        <Route path="/drivers/break-even" element={<RequireAuth><BreakEvenAnalysisPage /></RequireAuth>} />
       </Routes>
     </AppShell>
   )
