@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Line, LineChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { listDimensions, listDimensionValues } from '../features/dimension/api/dimensionRepository'
 import { fetchPlRatioRanking, fetchPlRatios, fetchPlRatioTrend } from '../features/pl/api/plRatioRepository'
-import { WhenToUseCard } from '../shared/ui/WhenToUseCard'
+import { LearningNotes } from '../shared/LearningNotes'
 import { AnalysisContextCard } from '../shared/ui/AnalysisContextCard'
 
 const versions = ['actual', 'budget', 'forecast'] as const
@@ -77,12 +77,7 @@ export function PLRatioAnalysisPage() {
       <label>Dimension Value<select className='w-full rounded border px-2 py-1' value={analysisDimensionValueId} onChange={(e) => setAnalysisDimensionValueId(e.target.value)} disabled={analysisDimensionKey === 'all' || !dimensionId}><option value='all'>All</option>{dimensionValues.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}</select></label>
     </div>
 
-    <WhenToUseCard bullets={[
-      'Use this view when you want to understand profitability and cost structure beyond absolute amounts.',
-      'In practice, FP&A teams use ratio analysis to evaluate gross margin, contribution margin, operating margin, variable cost ratio, and SG&A ratio.',
-      'This helps compare performance across months, products, customers, channels, or regions even when revenue size is different.',
-      'It is useful for monthly business reviews, pricing discussions, cost control, margin improvement projects, and management reporting.'
-    ]} note='Amounts tell you “how much.” Ratios tell you “how efficiently.” A business with higher revenue is not always better if its margin ratio is weak.' />
+    <LearningNotes title='Ratio Analysis' purpose='Review profitability and cost structure using margin and cost ratios.' whenToUse={['When revenue size differs across months or segments.', 'When you want to evaluate efficiency rather than absolute amount.']} howToRead={['Check gross margin and contribution margin.', 'Then check variable cost ratio, SG&A ratio, and operating margin.', 'Look for ratio trends rather than one-time values.']} fpnaTips={['Ratios tell you how efficiently the business converts revenue into profit.']} />
 
     <div className='mt-4 grid gap-3 md:grid-cols-3 text-sm'>
       {['Total Revenue','Gross Margin %','Contribution Margin %','Operating Margin %','Variable Cost Ratio','SG&A Ratio'].map((k) => <div key={k} className='rounded-lg border bg-slate-50 p-3'><div className='text-slate-500'>{k}</div><div className='text-right font-semibold'>{k==='Total Revenue'?fmtAmount(summary?.totalRevenue ?? 0):fmtPct(summary?.[k==='Gross Margin %'?'grossMarginPct':k==='Contribution Margin %'?'contributionMarginPct':k==='Operating Margin %'?'operatingMarginPct':k==='Variable Cost Ratio'?'variableCostRatio':'sgaRatio'] ?? null)}</div></div>)}

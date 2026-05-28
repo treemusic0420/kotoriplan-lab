@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { fetchVarianceDrivers, type VarianceAnalysisAxis } from '../features/pl/api/plVarianceDriverRepository'
 import type { CompareType } from '../features/pl/model/types'
-import { WhenToUseCard } from '../shared/ui/WhenToUseCard'
+import { LearningNotes } from '../shared/LearningNotes'
 import { BaseCompareLegend } from '../shared/ui/BaseCompareLegend'
 
 const months = Array.from({ length: 12 }, (_, idx) => ({ value: idx + 1, label: `2026-${String(idx + 1).padStart(2, '0')}` }))
@@ -50,11 +50,7 @@ export function PLVarianceDriversPage() {
   return <section className='rounded-xl bg-white p-6 shadow-sm'>
     <h2 className='text-lg font-medium'>Variance Driver Analysis</h2>
     <p className='mt-1 text-sm text-slate-600'>Identify which products, customers, channels, and regions drive favorable or unfavorable PL variance.</p>
-    <WhenToUseCard bullets={[
-      'Use this view to identify which dimension values are driving favorable or unfavorable variance.',
-      'In practice, after finding a variance in PL Variance, FP&A teams investigate which customer, product, channel, or region caused the difference.',
-      'This view helps move from “what changed?” to “where did it change?”'
-    ]} note='All Axes ranks each dimension independently. Values are not additive across axes.' />
+    <LearningNotes title='Variance Drivers' purpose='Identify which dimension values are driving favorable or unfavorable variance.' whenToUse={['After finding a material variance in PL Variance.', 'When you need to know which product, customer, channel, or region caused the variance.']} howToRead={['Start with the biggest unfavorable drivers.', 'Then review favorable drivers.', 'Do not add values across independent dimensions.']} fpnaTips={['Driver analysis helps prioritize management actions.']} />
 
     <div className='mt-3 grid gap-3 md:grid-cols-5'>
       <label>Compare Type<select className='w-full rounded border px-2 py-1' value={compareType} onChange={(e) => setCompareType(e.target.value as CompareType)}><option value='actual_vs_budget'>Actual vs Budget</option><option value='actual_vs_forecast'>Actual vs Forecast</option><option value='forecast_vs_budget'>Forecast vs Budget</option></select></label>

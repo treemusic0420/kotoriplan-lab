@@ -3,7 +3,7 @@ import { ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Ba
 import { listDimensions, listDimensionValues } from '../features/dimension/api/dimensionRepository'
 import { fetchPlBridge } from '../features/pl/api/plBridgeRepository'
 import type { CompareType } from '../features/pl/model/types'
-import { WhenToUseCard } from '../shared/ui/WhenToUseCard'
+import { LearningNotes } from '../shared/LearningNotes'
 
 const months = Array.from({ length: 12 }, (_, idx) => ({ value: idx + 1, label: `2026-${String(idx + 1).padStart(2, '0')}` }))
 const compareTypeOptions: Array<{ value: CompareType; label: string }> = [
@@ -74,12 +74,7 @@ export function PLBridgePage() {
       <label>Analysis Dimension<select className='w-full rounded border px-2 py-1' value={dimId} onChange={(e) => setDimId(e.target.value)}><option value=''>All</option>{dims.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}</select></label>
       <label>Dimension Value<select className='w-full rounded border px-2 py-1' value={valueId} onChange={(e) => setValueId(e.target.value)} disabled={!dimId}><option value=''>All</option>{values.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}</select></label>
     </div>
-    <WhenToUseCard bullets={[
-      'Use this view when management asks why operating profit changed versus budget or forecast.',
-      'Instead of only saying “Operating profit is up/down,” this bridge separates the movement into revenue impact, variable cost impact, and fixed cost impact.',
-      'In practice, FP&A teams use this type of view in monthly business reviews, budget variance meetings, forecast updates, and management reporting.',
-      'It helps explain whether profit changed because sales volume/pricing improved, variable costs worsened, or fixed costs increased.'
-    ]} note='Positive revenue impact improves profit. Higher variable or fixed costs reduce profit. Lower costs create favorable profit impact.' />
+    <LearningNotes title='PL Bridge' purpose='Explain operating profit movement by separating revenue impact, variable cost impact, and fixed cost impact.' whenToUse={['When management asks why operating profit changed.', 'When you need a concise story from budget to actual or forecast to actual.']} howToRead={['Start from base operating profit.', 'Add revenue impact.', 'Subtract variable cost impact and fixed cost impact.', 'End at compare operating profit.']} fpnaTips={['Bridge analysis is useful for executive communication.']} />
 
     <div className='mt-4 rounded-lg border bg-slate-50 px-3 py-2 text-xs text-slate-600'>
       <p className='font-medium text-slate-700'>For this bridge:</p>

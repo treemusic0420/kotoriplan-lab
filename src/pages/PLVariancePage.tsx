@@ -2,7 +2,7 @@ import { Fragment, useEffect, useMemo, useState } from 'react'
 import { listDimensions, listDimensionValues } from '../features/dimension/api/dimensionRepository'
 import { accountMeta, aggregatePlVariance } from '../features/pl/api/plFactRepository'
 import type { CompareType } from '../features/pl/model/types'
-import { WhenToUseCard } from '../shared/ui/WhenToUseCard'
+import { LearningNotes } from '../shared/LearningNotes'
 import { BaseCompareLegend } from '../shared/ui/BaseCompareLegend'
 
 const months = Array.from({ length: 12 }, (_, idx) => ({ value: idx + 1, label: `2026-${String(idx + 1).padStart(2, '0')}` }))
@@ -68,11 +68,7 @@ export function PLVariancePage() {
   return <section className='rounded-xl bg-white p-6 shadow-sm'>
     <h2 className='text-lg font-medium'>PL Variance</h2>
     <p className='mt-1 text-sm text-slate-600'>Compare actual, budget, and forecast PL to understand variance by account and analysis dimension.</p>
-    <WhenToUseCard bullets={[
-      'Use this view to compare actual, budget, and forecast results by account.',
-      'In practice, FP&A teams use variance analysis in monthly closing reviews, budget variance meetings, and forecast updates.',
-      'It helps explain whether performance is better or worse than planned, and whether the difference comes from revenue, cost, or profit accounts.'
-    ]} note='Favorable means the variance improves profit. Unfavorable means the variance hurts profit.' />
+    <LearningNotes title='PL Variance' purpose='Compare two versions such as Actual vs Budget or Actual vs Forecast.' whenToUse={['During monthly budget review or forecast review.', 'When you need to explain why actual performance differs from plan.']} howToRead={['Check total variance first.', 'Separate favorable and unfavorable variances.', 'Review revenue, variable cost, fixed cost, and operating profit.']} fpnaTips={['A favorable revenue variance can be offset by unfavorable cost variance.']} />
     <div className='mt-3 grid gap-3 md:grid-cols-3'>
       <label>Compare Type<select className='w-full rounded border px-2 py-1' value={compareType} onChange={(e) => setCompareType(e.target.value as CompareType)}>{compareTypeOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select></label>
       <label>Year<input className='w-full rounded border px-2 py-1' value={year} onChange={(e) => setYear(Number(e.target.value) || 2026)} /></label>
