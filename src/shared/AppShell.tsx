@@ -14,6 +14,7 @@ const links = [
   { to: '/pl/variance-drivers', label: 'Variance Drivers' },
   { to: '/pl/bridge', label: 'PL Bridge' },
   { to: '/pl/ratios', label: 'Ratio Analysis' },
+  { to: '/drivers', label: 'Driver Planning' },
   { to: '/learning-path', label: 'Learning Path' },
 ]
 
