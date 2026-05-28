@@ -3,7 +3,7 @@ import { ensureMasterData } from '../features/master/api/masterRepository'
 import { calculatePLSummary, fetchPLBaseData, fetchPLRows } from '../features/pl/api/plRepository'
 import { listDimensions, listDimensionValues } from '../features/dimension/api/dimensionRepository'
 import { accountMeta, aggregateMonthlyPl, orderedAccountKeys } from '../features/pl/api/plFactRepository'
-import { WhenToUseCard } from '../shared/ui/WhenToUseCard'
+import { LearningNotes } from '../shared/LearningNotes'
 import type { Version } from '../features/master/model/types'
 
 const fmt = (n: number) => {
@@ -53,11 +53,16 @@ export function PLViewPage(){
   const months=useMemo(()=>Array.from({length:12},(_,i)=>`${year}-${String(i+1).padStart(2,'0')}`),[year])
   const scenarioSummary = useMemo(() => (source === 'scenario_forecast' ? calculatePLSummary(rows) : null), [source, rows])
   return <section className='rounded-xl bg-white p-6 shadow-sm'><h2 className='text-lg font-medium'>PL View</h2>
-  <WhenToUseCard bullets={[
-    'Use this view to review the monthly Profit and Loss structure.',
-    'In practice, FP&A teams use this type of view to understand revenue, variable costs, gross profit, fixed costs, SG&A, and operating profit across months.',
-    'This is the starting point for monthly performance review, budget tracking, and management reporting.'
-  ]} note='Start here when you want to understand the overall financial picture before drilling into dimensions or variance.' />
+  <LearningNotes
+    title='PL View'
+    purpose='Review the monthly Profit and Loss structure and understand overall financial performance.'
+    whenToUse={[
+      'When you want to understand revenue, variable costs, fixed costs, and operating profit by month.',
+      'When you want to start a monthly business review.'
+    ]}
+    howToRead={['Start from Total Revenue.', 'Check Total Variable Cost and Contribution Margin.', 'Then check Fixed Cost and Operating Profit.', 'Look for months where profit changes significantly.']}
+    fpnaTips={['PL View is the starting point before drilling into variance, bridge, or dimension analysis.', 'A higher revenue month is not always better if margin is weak.']}
+  />
   <div className='mt-3 grid gap-3 md:grid-cols-3'><label>Data Source<select className='w-full rounded border' value={source} onChange={e=>setSource(e.target.value as any)}><option value='sample_pl_facts'>Sample PL Facts</option><option value='scenario_forecast'>Scenario Forecast</option></select></label><label>Version{source==='scenario_forecast'?<select className='w-full rounded border' value={versionId} onChange={e=>setVersionId(e.target.value)} disabled={noForecastVersion}><option value=''>Select forecast version</option>{activeVersions.map(v=><option key={v.id} value={v.id}>{v.name}</option>)}</select>:<select className='w-full rounded border' value={version} onChange={e=>setVersion(e.target.value)}><option>actual</option><option>budget</option><option>forecast</option></select>}</label><label>Year<input className='w-full rounded border' value={year} onChange={e=>setYear(Number(e.target.value))}/></label><label>Analysis Dimension<select className='w-full rounded border' value={dimensionId} onChange={e=>setDimensionId(e.target.value)} disabled={source==='scenario_forecast'}><option value=''>All</option>{dimensions.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}</select></label><label>Dimension Value<select className='w-full rounded border' value={dimensionValueId} onChange={e=>setDimensionValueId(e.target.value)} disabled={source==='scenario_forecast'}><option value=''>All</option>{values.map(v=><option key={v.id} value={v.id}>{v.name}</option>)}</select></label></div>
   {scenarioSummary&&<div className='mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4'>
     <article className='rounded-lg border bg-slate-50 p-3'><p className='text-xs text-slate-600'>Total Revenue</p><p className='mt-1 text-lg font-semibold'>{fmtCurrency(scenarioSummary.totalRevenue)}</p></article>
