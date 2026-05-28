@@ -17,6 +17,7 @@ const links = [
   { to: '/drivers', label: 'Driver Planning' },
   { to: '/drivers/sensitivity', label: 'Sensitivity Analysis' },
   { to: '/drivers/break-even', label: 'Break-even Analysis' },
+  { to: '/forecast/rolling', label: 'Rolling Forecast' },
   { to: '/learning-path', label: 'Learning Path' },
 ]
 
