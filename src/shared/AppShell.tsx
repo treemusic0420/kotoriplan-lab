@@ -15,6 +15,7 @@ const links = [
   { to: '/pl/bridge', label: 'PL Bridge' },
   { to: '/pl/ratios', label: 'Ratio Analysis' },
   { to: '/drivers', label: 'Driver Planning' },
+  { to: '/drivers/sensitivity', label: 'Sensitivity Analysis' },
   { to: '/learning-path', label: 'Learning Path' },
 ]
 
