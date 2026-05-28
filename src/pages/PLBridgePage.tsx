@@ -39,24 +39,27 @@ export function PLBridgePage() {
       .catch((e) => setError(e instanceof Error ? e.message : 'Unknown error'))
   }, [compareType, year, month, organization, dimId, valueId])
 
-  const baseOpLabel = useMemo(() => (compareType === 'actual_vs_forecast' ? 'Forecast Operating Profit' : 'Budget Operating Profit'), [compareType])
-  const compareOpLabel = useMemo(() => (compareType === 'forecast_vs_budget' ? 'Forecast Operating Profit' : 'Actual Operating Profit'), [compareType])
+  const baseVersion = useMemo(() => (compareType === 'actual_vs_forecast' ? 'Forecast' : 'Budget'), [compareType])
+  const compareVersion = useMemo(() => (compareType === 'forecast_vs_budget' ? 'Forecast' : 'Actual'), [compareType])
+  const chartTitle = useMemo(() => `Bridge Flow: (A) ${baseVersion} OP → Impacts → (B) ${compareVersion} OP`, [baseVersion, compareVersion])
+  const reconciliationAbsDiff = Math.abs(data?.reconciliationDifference ?? 0)
+  const reconciliationOk = reconciliationAbsDiff <= 1
 
   const tableRows = useMemo(() => ([
-    { step: 'Base Operating Profit', amount: data?.baseOperatingProfit ?? 0, explanation: 'Starting point from the base version.' },
-    { step: 'Revenue Impact', amount: data?.revenueImpact ?? 0, explanation: 'Profit impact from the change in total revenue.' },
-    { step: 'Variable Cost Impact', amount: data?.variableCostImpact ?? 0, explanation: 'Profit impact from the change in variable costs. Higher costs reduce profit.' },
-    { step: 'Fixed Cost Impact', amount: data?.fixedCostImpact ?? 0, explanation: 'Profit impact from the change in fixed costs / SG&A. Higher costs reduce profit.' },
-    { step: 'Compare Operating Profit', amount: data?.compareOperatingProfit ?? 0, explanation: 'Ending point from the compare version.' },
-    { step: 'Total Variance', amount: data?.actualTotalVariance ?? 0, explanation: 'Difference between compare operating profit and base operating profit.' }
+    { step: '(A) Base Operating Profit', amount: data?.baseOperatingProfit ?? 0, explanation: 'Starting point from (A), the base version.' },
+    { step: 'Revenue Impact', amount: data?.revenueImpact ?? 0, explanation: 'Profit impact from revenue change: (B) total revenue - (A) total revenue.' },
+    { step: 'Variable Cost Impact', amount: data?.variableCostImpact ?? 0, explanation: 'Profit impact from variable cost change: -((B) variable cost - (A) variable cost). Higher costs reduce profit.' },
+    { step: 'Fixed Cost Impact', amount: data?.fixedCostImpact ?? 0, explanation: 'Profit impact from fixed cost / SG&A change: -((B) SG&A - (A) SG&A). Higher costs reduce profit.' },
+    { step: '(B) Compare Operating Profit', amount: data?.compareOperatingProfit ?? 0, explanation: 'Ending point from (B), the compare version.' },
+    { step: 'Total Variance: (B) - (A)', amount: data?.actualTotalVariance ?? 0, explanation: 'Difference between (B) compare operating profit and (A) base operating profit.' }
   ]), [data])
 
   const chartRows = useMemo(() => ([
-    { name: 'Base OP', amount: data?.baseOperatingProfit ?? 0 },
+    { name: '(A) Base OP', amount: data?.baseOperatingProfit ?? 0 },
     { name: 'Revenue Impact', amount: data?.revenueImpact ?? 0 },
     { name: 'Variable Cost Impact', amount: data?.variableCostImpact ?? 0 },
     { name: 'Fixed Cost Impact', amount: data?.fixedCostImpact ?? 0 },
-    { name: 'Compare OP', amount: data?.compareOperatingProfit ?? 0 }
+    { name: '(B) Compare OP', amount: data?.compareOperatingProfit ?? 0 }
   ]), [data])
 
   return <section className='rounded-xl bg-white p-6 shadow-sm'>
@@ -78,32 +81,42 @@ export function PLBridgePage() {
       'It helps explain whether profit changed because sales volume/pricing improved, variable costs worsened, or fixed costs increased.'
     ]} note='Positive revenue impact improves profit. Higher variable or fixed costs reduce profit. Lower costs create favorable profit impact.' />
 
+    <div className='mt-4 rounded-lg border bg-slate-50 px-3 py-2 text-xs text-slate-600'>
+      <p className='font-medium text-slate-700'>For this bridge:</p>
+      <p>(A) Base = {baseVersion}</p>
+      <p>(B) Compare = {compareVersion}</p>
+      <p>Bridge direction: (A) {baseVersion} Operating Profit → impacts → (B) {compareVersion} Operating Profit</p>
+    </div>
+
     <div className='mt-4 grid gap-3 md:grid-cols-3 text-sm'>
-      <div className='rounded-lg border bg-slate-50 p-3'><div className='text-slate-500'>Base Operating Profit</div><div className='font-semibold'>{fmtAmount(data?.baseOperatingProfit ?? 0)}</div></div>
-      <div className='rounded-lg border bg-slate-50 p-3'><div className='text-slate-500'>Revenue Impact</div><div className='font-semibold'>{fmtAmount(data?.revenueImpact ?? 0, true)}</div></div>
-      <div className='rounded-lg border bg-slate-50 p-3'><div className='text-slate-500'>Variable Cost Impact</div><div className='font-semibold'>{fmtAmount(data?.variableCostImpact ?? 0, true)}</div></div>
-      <div className='rounded-lg border bg-slate-50 p-3'><div className='text-slate-500'>Fixed Cost Impact</div><div className='font-semibold'>{fmtAmount(data?.fixedCostImpact ?? 0, true)}</div></div>
-      <div className='rounded-lg border bg-slate-50 p-3'><div className='text-slate-500'>Compare Operating Profit</div><div className='font-semibold'>{fmtAmount(data?.compareOperatingProfit ?? 0)}</div></div>
-      <div className='rounded-lg border bg-slate-50 p-3'><div className='text-slate-500'>Total Variance</div><div className='font-semibold'>{fmtAmount(data?.actualTotalVariance ?? 0, true)}</div></div>
+      <div className='rounded-lg border bg-slate-50 p-3'><div className='text-slate-500'>(A) Base Operating Profit</div><div className='font-semibold'>{fmtAmount(data?.baseOperatingProfit ?? 0)}</div></div>
+      <div className='rounded-lg border bg-slate-50 p-3'><div className='text-slate-500'>Revenue Impact</div><div className='text-[11px] text-slate-500'>(B) revenue - (A) revenue</div><div className='font-semibold'>{fmtAmount(data?.revenueImpact ?? 0, true)}</div></div>
+      <div className='rounded-lg border bg-slate-50 p-3'><div className='text-slate-500'>Variable Cost Impact</div><div className='text-[11px] text-slate-500'>-((B) variable cost - (A) variable cost)</div><div className='font-semibold'>{fmtAmount(data?.variableCostImpact ?? 0, true)}</div></div>
+      <div className='rounded-lg border bg-slate-50 p-3'><div className='text-slate-500'>Fixed Cost Impact</div><div className='text-[11px] text-slate-500'>-((B) SG&A - (A) SG&A)</div><div className='font-semibold'>{fmtAmount(data?.fixedCostImpact ?? 0, true)}</div></div>
+      <div className='rounded-lg border bg-slate-50 p-3'><div className='text-slate-500'>(B) Compare Operating Profit</div><div className='font-semibold'>{fmtAmount(data?.compareOperatingProfit ?? 0)}</div></div>
+      <div className='rounded-lg border bg-slate-50 p-3'><div className='text-slate-500'>Total Variance: (B) - (A)</div><div className='font-semibold'>{fmtAmount(data?.actualTotalVariance ?? 0, true)}</div></div>
     </div>
 
     {error && <p className='mt-3 text-rose-600'>Failed to load PL bridge: {error}</p>}
     {data && data.rawCount === 0 && <p className='mt-3 text-sm text-slate-600'>No PL facts found. Load sample PL data first.</p>}
     {data && data.rawCount > 0 && (!data.hasBase || !data.hasCompare) && <p className='mt-3 text-sm text-slate-600'>No bridge data found for selected filters.</p>}
 
-    {data?.rawCount > 0 && <p className='mt-2 text-xs text-slate-500'>Reconciliation difference (Actual OP variance - Calculated impacts): {fmtAmount(data.reconciliationDifference, true)}</p>}
+    {data?.rawCount > 0 && <div className='mt-2 text-xs text-slate-500'>
+      <p>Reconciliation check: {reconciliationOk ? 'OK' : 'Difference detected'}</p>
+      <p>Difference between (B) OP - (A) OP and calculated bridge impacts: {fmtAmount(data.reconciliationDifference, true)}</p>
+    </div>}
 
     <div className='mt-4 overflow-x-auto'>
       <table className='min-w-full text-sm'>
         <thead><tr><th className='text-left'>Step</th><th className='text-right'>Amount</th><th className='text-left'>Explanation</th></tr></thead>
         <tbody>
-          {tableRows.map((row) => <tr key={row.step} className='border-t'><td className='py-2'>{row.step}</td><td className='py-2 text-right'>{fmtAmount(row.amount, row.step.includes('Impact') || row.step === 'Total Variance')}</td><td className='py-2'>{row.explanation}</td></tr>)}
+          {tableRows.map((row) => <tr key={row.step} className='border-t'><td className='py-2'>{row.step}</td><td className='py-2 text-right'>{fmtAmount(row.amount, row.step.includes('Impact') || row.step.includes('Total Variance'))}</td><td className='py-2'>{row.explanation}</td></tr>)}
         </tbody>
       </table>
     </div>
 
     <div className='mt-6'>
-      <h3 className='text-base font-medium'>Bridge Flow ({baseOpLabel} → Impacts → {compareOpLabel})</h3>
+      <h3 className='text-base font-medium'>{chartTitle}</h3>
       <div className='mt-2 h-72 rounded-lg border bg-white p-2'>
         <ResponsiveContainer width='100%' height='100%'>
           <BarChart data={chartRows}>

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { fetchVarianceDrivers, type VarianceAnalysisAxis } from '../features/pl/api/plVarianceDriverRepository'
 import type { CompareType } from '../features/pl/model/types'
 import { WhenToUseCard } from '../shared/ui/WhenToUseCard'
+import { BaseCompareLegend } from '../shared/ui/BaseCompareLegend'
 
 const months = Array.from({ length: 12 }, (_, idx) => ({ value: idx + 1, label: `2026-${String(idx + 1).padStart(2, '0')}` }))
 const metricOptions = [
@@ -63,8 +64,15 @@ export function PLVarianceDriversPage() {
       <label>Analysis Axis<select className='w-full rounded border px-2 py-1' value={analysisAxis} onChange={(e) => setAnalysisAxis(e.target.value as VarianceAnalysisAxis)}>{axisOptions.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}</select></label>
     </div>
 
+    <BaseCompareLegend
+      compareType={compareType}
+      contextLabel='For this driver analysis:'
+      formulaPrefix='Driver variance formula'
+      formulaLabel='- (A)'
+    />
+
     <div className='mt-4 grid gap-3 text-sm md:grid-cols-4'>
-      <div className='rounded-lg border bg-slate-50 p-3'><div className='text-slate-500'>Selected Metric Variance</div><div className='font-semibold'>{metricLabel}: {fmtAmount(data?.summary?.selectedMetricVariance ?? 0, true)}</div></div>
+      <div className='rounded-lg border bg-slate-50 p-3'><div className='text-slate-500'>Selected Metric Variance: (B) - (A)</div><div className='font-semibold'>{metricLabel}: {fmtAmount(data?.summary?.selectedMetricVariance ?? 0, true)}</div></div>
       <div className='rounded-lg border bg-slate-50 p-3'><div className='text-slate-500'>Biggest Unfavorable Driver</div><div className='font-semibold'>{data?.summary?.biggestUnfavorable ? `${data.summary.biggestUnfavorable.axisName} / ${data.summary.biggestUnfavorable.valueName}: ${fmtAmount(data.summary.biggestUnfavorable.variance, true)}` : '—'}</div></div>
       <div className='rounded-lg border bg-slate-50 p-3'><div className='text-slate-500'>Biggest Favorable Driver</div><div className='font-semibold'>{data?.summary?.biggestFavorable ? `${data.summary.biggestFavorable.axisName} / ${data.summary.biggestFavorable.valueName}: ${fmtAmount(data.summary.biggestFavorable.variance, true)}` : '—'}</div></div>
       <div className='rounded-lg border bg-slate-50 p-3'><div className='text-slate-500'>Unfavorable Driver Count</div><div className='font-semibold'>{data?.summary?.unfavorableDriverCount ?? 0}</div></div>
@@ -80,7 +88,7 @@ export function PLVarianceDriversPage() {
         <h3 className='text-base font-medium'>{section.title}</h3>
         <div className='mt-2 overflow-x-auto'>
           <table className='min-w-[980px] text-sm'>
-            <thead><tr><th className='text-left'>Rank</th><th className='text-left'>Axis</th><th className='text-left'>Value</th><th className='text-right'>{data?.compareLabel ?? 'Compare'}</th><th className='text-right'>{data?.baseLabel ?? 'Base'}</th><th className='text-right'>Variance</th><th className='text-right'>Variance %</th><th className='text-right'>F/U</th></tr></thead>
+            <thead><tr><th className='text-left'>Rank</th><th className='text-left'>Axis</th><th className='text-left'>Value</th><th className='text-right'>(B) {data?.compareLabel ?? 'Compare'}</th><th className='text-right'>(A) {data?.baseLabel ?? 'Base'}</th><th className='text-right'>Variance: (B) - (A)</th><th className='text-right'>Variance %</th><th className='text-right'>F/U</th></tr></thead>
             <tbody>
               {section.rows.map((row: any, idx: number) => (
                 <tr key={`${section.title}-${row.axisKey}-${row.valueId}`} className='border-t'>

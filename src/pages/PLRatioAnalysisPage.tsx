@@ -3,6 +3,7 @@ import { Line, LineChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YA
 import { listDimensions, listDimensionValues } from '../features/dimension/api/dimensionRepository'
 import { fetchPlRatioRanking, fetchPlRatios, fetchPlRatioTrend } from '../features/pl/api/plRatioRepository'
 import { WhenToUseCard } from '../shared/ui/WhenToUseCard'
+import { AnalysisContextCard } from '../shared/ui/AnalysisContextCard'
 
 const versions = ['actual', 'budget', 'forecast'] as const
 const months = [{ value: 'all', label: 'All Months' }, ...Array.from({ length: 12 }, (_, i) => ({ value: `2026-${String(i + 1).padStart(2, '0')}`, label: `2026-${String(i + 1).padStart(2, '0')}` }))]
@@ -44,18 +45,23 @@ export function PLRatioAnalysisPage() {
       .catch((e) => setError(e instanceof Error ? e.message : 'Unknown error'))
   }, [version, year, month, organizationKey, analysisDimensionKey, analysisDimensionValueId])
 
+  const selectedDimensionName = useMemo(() => dimensionOptions.find((d) => d.key === analysisDimensionKey)?.name ?? 'All dimensions', [analysisDimensionKey])
+  const selectedValueName = useMemo(() => analysisDimensionValueId === 'all' ? 'All values' : (dimensionValues.find((v) => v.id === analysisDimensionValueId)?.name ?? 'Selected value'), [analysisDimensionValueId, dimensionValues])
+  const analysisPeriod = month === 'all' ? `${year} All Months` : month
+  const analysisScope = analysisDimensionKey === 'all' ? 'All organization / All dimensions' : `${selectedDimensionName} / ${selectedValueName}`
+
   const rows = useMemo(() => [
-    ['Total Revenue', summary?.totalRevenue, 'Revenue after returns and discounts.'],
+    ['Total Revenue', summary?.totalRevenue, 'Revenue after returns and discounts. This is the denominator for most profitability ratios.'],
     ['Total Variable Cost', summary?.totalVariableCost, 'Total variable costs tied to sales volume.'],
     ['Gross Profit', summary?.grossProfit, 'Revenue minus variable costs.'],
     ['Contribution Margin', summary?.contributionMargin, 'Revenue available to cover fixed costs and profit.'],
     ['Total SG&A', summary?.totalSga, 'Fixed costs and operating expenses.'],
     ['Operating Profit', summary?.operatingProfit, 'Contribution margin minus SG&A.'],
-    ['Gross Margin %', summary?.grossMarginPct, 'Shows how much gross profit remains after variable costs.'],
-    ['Contribution Margin %', summary?.contributionMarginPct, 'Shows how much revenue contributes to covering fixed costs and profit.'],
-    ['Variable Cost Ratio', summary?.variableCostRatio, 'Shows how much of revenue is consumed by variable costs.'],
-    ['SG&A Ratio', summary?.sgaRatio, 'Shows how much of revenue is consumed by fixed costs and operating expenses.'],
-    ['Operating Margin %', summary?.operatingMarginPct, 'Shows operating profit as a percentage of revenue.']
+    ['Gross Margin %', summary?.grossMarginPct, 'Gross profit divided by total revenue. It shows how much profit remains after variable costs.'],
+    ['Contribution Margin %', summary?.contributionMarginPct, 'Contribution margin divided by total revenue. It shows how much revenue is available to cover fixed costs and profit.'],
+    ['Variable Cost Ratio', summary?.variableCostRatio, 'Total variable cost divided by total revenue. A higher ratio means variable costs consume more revenue.'],
+    ['SG&A Ratio', summary?.sgaRatio, 'Total SG&A divided by total revenue. A higher ratio means fixed operating expenses consume more revenue.'],
+    ['Operating Margin %', summary?.operatingMarginPct, 'Operating profit divided by total revenue. It shows final operating profitability after variable and fixed costs.']
   ], [summary])
 
   return <section className='rounded-xl bg-white p-6 shadow-sm'>
