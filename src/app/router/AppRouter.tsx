@@ -13,6 +13,7 @@ import { PLVariancePage } from '../../pages/PLVariancePage'
 import { PLVarianceDriversPage } from '../../pages/PLVarianceDriversPage'
 import { PLBridgePage } from '../../pages/PLBridgePage'
 import { PLRatioAnalysisPage } from '../../pages/PLRatioAnalysisPage'
+import { LearningPathPage } from '../../pages/LearningPathPage'
 import { RequireAuth } from '../../features/auth/RequireAuth'
 
 export function AppRouter() {
@@ -35,6 +36,7 @@ export function AppRouter() {
         <Route path="/pl/variance-drivers" element={<RequireAuth><PLVarianceDriversPage /></RequireAuth>} />
         <Route path="/pl/bridge" element={<RequireAuth><PLBridgePage /></RequireAuth>} />
         <Route path="/pl/ratios" element={<RequireAuth><PLRatioAnalysisPage /></RequireAuth>} />
+        <Route path="/learning-path" element={<RequireAuth><LearningPathPage /></RequireAuth>} />
       </Routes>
     </AppShell>
   )
