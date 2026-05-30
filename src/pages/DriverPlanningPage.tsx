@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { LearningNotes } from '../shared/LearningNotes'
+import { FPNAInterpretationCard } from '../shared/FPNAInterpretationCard'
 
 type DriverInputState = {
   customers: number
@@ -52,6 +53,13 @@ export function DriverPlanningPage() {
       operatingMarginRate,
     }
   }, [inputs])
+
+  const fpnaInterpretation = useMemo(() => [
+    metrics.operatingProfit >= 0 ? 'Driver assumptions create positive operating profit.' : 'Driver assumptions do not yet cover the cost base.',
+    metrics.contributionMarginRate !== null && metrics.contributionMarginRate >= 0.4 ? 'Unit economics are healthy before fixed costs.' : 'Unit economics need pricing or variable cost improvement.',
+    metrics.fixedCost <= metrics.contributionMargin ? 'Fixed costs are supported by contribution margin.' : 'Fixed costs exceed contribution margin and limit scalability.',
+    inputs.customers > 0 && inputs.ordersPerCustomer > 0 ? 'Revenue is driven by both customer count and purchase frequency.' : 'Volume drivers should be validated before using this plan.',
+  ], [inputs.customers, inputs.ordersPerCustomer, metrics])
 
   const insight = useMemo(() => {
     if (metrics.operatingProfit < 0) {
@@ -177,6 +185,7 @@ export function DriverPlanningPage() {
           <li>Step 4: Explain variance using PL Bridge</li>
         </ol>
       </article>
+    <FPNAInterpretationCard items={fpnaInterpretation} />
     </section>
   )
 }

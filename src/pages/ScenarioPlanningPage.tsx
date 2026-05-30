@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { LearningNotes } from '../shared/LearningNotes'
+import { FPNAInterpretationCard } from '../shared/FPNAInterpretationCard'
 
 type ScenarioPlanningInputs = {
   planningHorizon: number
@@ -159,6 +160,13 @@ export function ScenarioPlanningPage() {
   const waterfallRows = [
     { label: 'Current Revenue', value: currentRevenue, color: '#64748b' },
     ...scenarios.map((scenario) => ({ label: `${scenario.label} Revenue`, value: scenario.revenue, color: scenario.color })),
+  ]
+
+  const fpnaInterpretation = [
+    baseScenario.operatingProfit >= 0 ? 'Base case remains profitable.' : 'Base case profitability is negative and needs a turnaround plan.',
+    revenueSpread > currentRevenue * 0.5 ? 'Scenario range is wide, so decision makers should prepare contingencies.' : 'Scenario range is contained, so planning confidence is relatively stable.',
+    downsideRisk !== null && downsideRisk <= 0.2 ? 'Downside risk is manageable versus the base case.' : 'Downside risk is material and should be linked to trigger actions.',
+    bestScenario.revenue > baseScenario.revenue ? 'Upside case shows additional growth opportunity if key assumptions are achieved.' : 'Upside case does not create much separation from base assumptions.',
   ]
 
   const kpiCards = [
@@ -373,6 +381,7 @@ export function ScenarioPlanningPage() {
           ))}
         </ol>
       </article>
+    <FPNAInterpretationCard items={fpnaInterpretation} />
     </section>
   )
 }

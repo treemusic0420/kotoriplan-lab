@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { LearningNotes } from '../shared/LearningNotes'
+import { FPNAInterpretationCard } from '../shared/FPNAInterpretationCard'
 
 type BalanceSheetInputs = {
   openingCash: number
@@ -176,6 +177,13 @@ export function BalanceSheetPlanningPage() {
   const leverageStatus = useMemo(() => getLeverageStatus(metrics.debtToEquityRatio), [metrics.debtToEquityRatio])
   const managementInsight = useMemo(() => buildManagementInsight(metrics, inputs), [metrics, inputs])
   const isBalanced = Math.abs(metrics.balanceGap) < 1
+  const fpnaInterpretation = useMemo(() => [
+    inputs.currentYearProfit > 0 ? 'Equity base is strengthening through retained profit.' : 'Equity base is not being strengthened by profit.',
+    metrics.debtToEquityRatio <= 1 ? 'Leverage remains manageable.' : 'Leverage is elevated and may reduce financial flexibility.',
+    metrics.endingCash >= 0 ? 'Cash position supports financial flexibility.' : 'Cash position is negative and constrains flexibility.',
+    metrics.netAssetValue > metrics.endingEquity ? 'Asset base provides coverage beyond liabilities.' : 'Net asset value should be reviewed against equity expectations.',
+    isBalanced ? 'Balance sheet remains internally balanced.' : 'Balance sheet does not reconcile and requires input review.',
+  ], [inputs.currentYearProfit, isBalanced, metrics])
 
   const bridgeCards = useMemo<BridgeCard[]>(() => [
     {
@@ -387,6 +395,7 @@ export function BalanceSheetPlanningPage() {
           The Income Statement explains profitability. The Cash Flow Statement explains liquidity. The Balance Sheet explains financial position. Together they form the foundation of FP&amp;A and corporate finance.
         </p>
       </article>
+    <FPNAInterpretationCard items={fpnaInterpretation} />
     </section>
   )
 }

@@ -3,6 +3,7 @@ import { Line, LineChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YA
 import { listDimensions, listDimensionValues } from '../features/dimension/api/dimensionRepository'
 import { fetchPlRatioRanking, fetchPlRatios, fetchPlRatioTrend } from '../features/pl/api/plRatioRepository'
 import { LearningNotes } from '../shared/LearningNotes'
+import { FPNAInterpretationCard } from '../shared/FPNAInterpretationCard'
 import { AnalysisContextCard } from '../shared/ui/AnalysisContextCard'
 
 const versions = ['actual', 'budget', 'forecast'] as const
@@ -64,6 +65,13 @@ export function PLRatioAnalysisPage() {
     ['Operating Margin %', summary?.operatingMarginPct, 'Operating profit divided by total revenue. It shows final operating profitability after variable and fixed costs.']
   ], [summary])
 
+  const fpnaInterpretation = useMemo(() => [
+    summary?.grossMarginPct !== null && summary?.grossMarginPct !== undefined && summary.grossMarginPct >= 0.4 ? 'Gross margin is healthy.' : 'Gross margin is below target and should be reviewed.',
+    summary?.variableCostRatio !== null && summary?.variableCostRatio !== undefined && summary.variableCostRatio <= 0.6 ? 'Variable cost efficiency is under control.' : 'Variable cost ratio is consuming too much revenue.',
+    summary?.sgaRatio !== null && summary?.sgaRatio !== undefined && summary.sgaRatio <= 0.25 ? 'Fixed cost structure is scalable at the current revenue level.' : 'SG&A ratio indicates fixed cost leverage is weak.',
+    summary?.operatingMarginPct !== null && summary?.operatingMarginPct !== undefined && summary.operatingMarginPct > 0 ? 'The business is converting revenue into operating profit.' : 'Operating margin is not yet supporting sustainable profitability.',
+  ], [summary])
+
   return <section className='rounded-xl bg-white p-6 shadow-sm'>
     <h2 className='text-lg font-medium'>Ratio Analysis</h2>
     <p className='mt-1 text-sm text-slate-600'>Review profitability and cost structure using margin and cost ratios.</p>
@@ -108,5 +116,6 @@ export function PLRatioAnalysisPage() {
         </tbody></table>
       </div>
     </div>}
+  <FPNAInterpretationCard items={fpnaInterpretation} />
   </section>
 }

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { LearningNotes } from '../shared/LearningNotes'
+import { FPNAInterpretationCard } from '../shared/FPNAInterpretationCard'
 
 type CapacityInputs = {
   forecastDemandUnits: number
@@ -145,6 +146,13 @@ export function CapacityPlanningPage() {
     { label: 'Scenario B', description: '+1 Machine', machines: inputs.numberOfMachines + 1, metrics: calculateMetrics(inputs, 1) },
     { label: 'Scenario C', description: '+3 Machines', machines: inputs.numberOfMachines + 3, metrics: calculateMetrics(inputs, 3) },
   ], [inputs])
+
+  const fpnaInterpretation = useMemo(() => [
+    metrics.capacityGap >= 0 ? 'Available capacity can support the demand plan.' : 'Demand exceeds available capacity and may cap revenue.',
+    metrics.utilization !== null && metrics.utilization >= 0.7 && metrics.utilization <= 0.9 ? 'Utilization is in a healthy operating range.' : 'Utilization is outside the target range and requires management attention.',
+    metrics.operatingProfit >= 0 ? 'Capacity plan generates positive operating profit.' : 'Capacity plan does not yet cover fixed operating costs.',
+    inputs.plannedNewMachines > 0 ? 'Expansion investment should be tested against demand certainty.' : 'No new machine plan means growth depends on existing capacity.',
+  ], [inputs.plannedNewMachines, metrics])
 
   const learningInsight = useMemo(() => {
     if (metrics.availableCapacity === 0 || metrics.capacityGap < 0 || (metrics.utilization !== null && metrics.utilization > 0.9)) {
@@ -300,6 +308,7 @@ export function CapacityPlanningPage() {
           ))}
         </ol>
       </article>
+    <FPNAInterpretationCard items={fpnaInterpretation} />
     </section>
   )
 }
