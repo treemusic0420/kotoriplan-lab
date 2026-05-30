@@ -19,6 +19,7 @@ const links = [
   { to: '/drivers/break-even', label: 'Break-even Analysis' },
   { to: '/forecast/rolling', label: 'Rolling Forecast' },
   { to: '/planning/headcount', label: 'Headcount Planning' },
+  { to: '/planning/capacity', label: 'Capacity Planning' },
   { to: '/learning-path', label: 'Learning Path' },
 ]
 
