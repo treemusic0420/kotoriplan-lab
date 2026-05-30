@@ -24,6 +24,7 @@ const links = [
   { to: '/planning/investment-portfolio', label: 'Investment Portfolio Planning' },
   { to: '/planning/long-range', label: 'Long Range Planning' },
   { to: '/planning/scenario-planning', label: 'Scenario Planning' },
+  { to: '/planning/strategic-driver-tree', label: 'Strategic Driver Tree' },
   { to: '/learning-path', label: 'Learning Path' },
 ]
 
