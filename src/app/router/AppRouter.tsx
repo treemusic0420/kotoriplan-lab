@@ -34,7 +34,7 @@ export function AppRouter() {
   return (
     <AppShell>
       <Routes>
-        <Route path="/" element={<Navigate to="/scenarios" replace />} />
+        <Route path="/" element={<Navigate to="/learning-path" replace />} />
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/scenarios" element={<RequireAuth><ScenarioListPage /></RequireAuth>} />
         <Route path="/scenarios/new" element={<RequireAuth><ScenarioEditorPage /></RequireAuth>} />

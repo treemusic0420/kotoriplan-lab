@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { useAuth } from '../features/auth/AuthProvider'
 
 const links = [
+  { to: '/learning-path', label: 'Learning Path' },
   { to: '/scenarios', label: 'Scenario List' },
   { to: '/scenarios/new', label: 'Scenario Editor' },
   { to: '/compare', label: 'Scenario Compare' },
@@ -28,7 +29,6 @@ const links = [
   { to: '/planning/balance-sheet', label: 'Balance Sheet Planning' },
   { to: '/planning/strategic-driver-tree', label: 'Strategic Driver Tree' },
   { to: '/planning/strategic-initiative', label: 'Strategic Initiative Planning' },
-  { to: '/learning-path', label: 'Learning Path' },
 ]
 
 export function AppShell({ children }: { children: ReactNode }) {
