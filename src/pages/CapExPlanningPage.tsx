@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { LearningNotes } from '../shared/LearningNotes'
+import { FPNAInterpretationCard } from '../shared/FPNAInterpretationCard'
 
 type CapExInputs = {
   currentCapacity: number
@@ -145,6 +146,13 @@ export function CapExPlanningPage() {
   ], [metrics])
 
   const maxWaterfallValue = Math.max(...waterfallRows.map((row) => Math.abs(row.value)), 1)
+
+  const fpnaInterpretation = useMemo(() => [
+    metrics.capacityGap > 0 ? 'CapEx is addressing a real capacity constraint.' : 'Current capacity already covers demand, so investment timing should be challenged.',
+    metrics.addedCapacityUsed > 0 ? 'New capacity is expected to convert into incremental revenue.' : 'Additional capacity is not being used by forecast demand.',
+    metrics.annualRoi !== null && metrics.annualRoi >= 0.15 ? 'ROI is within an acceptable screening range.' : 'ROI is weak relative to the investment outlay.',
+    metrics.paybackPeriod !== null && metrics.paybackPeriod <= inputs.investmentLifeYears ? 'Payback fits within the useful planning horizon.' : 'Payback may exceed the asset life or cannot be calculated.',
+  ], [inputs.investmentLifeYears, metrics])
 
   const learningInsight = useMemo(() => {
     if (metrics.paybackPeriod !== null && metrics.paybackPeriod > inputs.investmentLifeYears) {
@@ -326,6 +334,7 @@ export function CapExPlanningPage() {
           ))}
         </ol>
       </article>
+    <FPNAInterpretationCard items={fpnaInterpretation} />
     </section>
   )
 }

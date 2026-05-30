@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { LearningNotes } from '../shared/LearningNotes'
+import { FPNAInterpretationCard } from '../shared/FPNAInterpretationCard'
 
 type CashFlowInputs = {
   openingCash: number
@@ -193,6 +194,13 @@ export function CashFlowPlanningPage() {
   const forecastRows = useMemo(() => buildForecast(inputs), [inputs])
   const cashHealthStatus = useMemo(() => getCashHealthStatus(metrics), [metrics])
   const cashInsights = useMemo(() => buildCashInsights(metrics, inputs), [metrics, inputs])
+  const fpnaInterpretation = useMemo(() => [
+    metrics.operatingProfit >= 0 ? 'Profitability is positive.' : 'Profitability is negative and weakens cash generation.',
+    metrics.operatingCashFlow >= metrics.operatingProfit ? 'Cash conversion is strong after working capital.' : 'Cash conversion is weak relative to profit.',
+    metrics.changeInAr <= metrics.changeInAp ? 'Payables are helping offset receivables pressure.' : 'Receivables are consuming liquidity.',
+    metrics.freeCashFlow >= 0 ? 'Free cash flow can fund financing needs.' : 'Additional financing or cash preservation may be required.',
+    metrics.endingCash >= 0 ? 'Ending cash remains positive.' : 'Ending cash falls below zero and requires immediate action.',
+  ], [metrics])
 
   const handleInputChange = (key: keyof CashFlowInputs, value: string) => {
     const parsedValue = Number(value)
@@ -339,6 +347,7 @@ export function CashFlowPlanningPage() {
           <li>Step 5: Check ending cash and runway</li>
         </ol>
       </article>
+    <FPNAInterpretationCard items={fpnaInterpretation} />
     </section>
   )
 }

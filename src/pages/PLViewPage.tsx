@@ -4,6 +4,7 @@ import { calculatePLSummary, fetchPLBaseData, fetchPLRows } from '../features/pl
 import { listDimensions, listDimensionValues } from '../features/dimension/api/dimensionRepository'
 import { accountMeta, aggregateMonthlyPl, orderedAccountKeys } from '../features/pl/api/plFactRepository'
 import { LearningNotes } from '../shared/LearningNotes'
+import { FPNAInterpretationCard } from '../shared/FPNAInterpretationCard'
 import type { Version } from '../features/master/model/types'
 
 const fmt = (n: number) => {
@@ -52,6 +53,21 @@ export function PLViewPage(){
   useEffect(()=>{const run=async()=>{try{setError(null);if(source==='scenario_forecast'){if(!orgId||!versionId){setRows([]);return} setRows(await fetchPLRows({organizationId:orgId,versionId,year}))} else {const data=await aggregateMonthlyPl({version,year,organizationKey:organization,analysisDimensionId:dimensionId||undefined,analysisDimensionValueId:dimensionValueId||undefined}); const months=Array.from({length:12},(_,i)=>`${year}-${String(i+1).padStart(2,'0')}`); const accounts=orderedAccountKeys(); setRows(accounts.map(a=>({accountCode:a,accountName:accountMeta(a)?.accountName??a,cells:months.map(m=>({yearMonth:m,amount:data.filter((r:any)=>r.account_key===a && String(r.target_month).slice(0,7)===m).reduce((s:number,r:any)=>s+Number(r.amount),0)}))}))) }}catch(e){setError(e instanceof Error?e.message:'Unknown error')}}; void run()},[source,version,year,organization,dimensionId,dimensionValueId,orgId,versionId])
   const months=useMemo(()=>Array.from({length:12},(_,i)=>`${year}-${String(i+1).padStart(2,'0')}`),[year])
   const scenarioSummary = useMemo(() => (source === 'scenario_forecast' ? calculatePLSummary(rows) : null), [source, rows])
+  const fpnaInterpretation = useMemo(() => {
+    const accountTotal = (accountCode: string) => rows.find((row: any) => row.accountCode === accountCode)?.cells.reduce((sum: number, cell: any) => sum + Number(cell.amount ?? 0), 0) ?? 0
+    const revenue = scenarioSummary?.totalRevenue ?? accountTotal('total_revenue')
+    const contributionMargin = scenarioSummary?.contributionMargin ?? accountTotal('contribution_margin')
+    const operatingProfit = scenarioSummary?.operatingProfit ?? accountTotal('operating_profit')
+    const operatingMargin = revenue === 0 ? null : operatingProfit / revenue
+    const contributionMarginRate = scenarioSummary?.contributionMarginPct ?? (revenue === 0 ? null : contributionMargin / revenue)
+
+    return [
+      operatingProfit > 0 ? 'Revenue is converting into positive operating profit.' : 'The current PL structure is not generating operating profit yet.',
+      contributionMarginRate !== null && contributionMarginRate >= 0.35 ? 'Contribution margin is supporting profit expansion.' : 'Margin remains below a healthy planning threshold.',
+      operatingMargin !== null && operatingMargin >= 0.1 ? 'Operating margin indicates fixed costs are being absorbed.' : 'Cost structure should be reviewed before scaling revenue.',
+      revenue > 0 ? 'Use the largest monthly swings to decide where to drill into variance or bridge analysis.' : 'Load or select PL data before drawing management conclusions.',
+    ]
+  }, [rows, scenarioSummary])
   return <section className='rounded-xl bg-white p-6 shadow-sm'><h2 className='text-lg font-medium'>PL View</h2>
   <LearningNotes
     title='PL View'
@@ -77,5 +93,6 @@ export function PLViewPage(){
   </div>}
   {error&&<p className='mt-3 text-rose-600'>Failed to load PL facts: {error}</p>}
   {noForecastVersion?<p className='mt-3 text-sm text-slate-600'>No forecast version found.</p>:rows.length===0?<p className='mt-3 text-sm text-slate-600'>No PL facts found. Load sample PL data to start analysis.</p>:<div className='mt-3 overflow-x-auto'><table className='min-w-[1000px] text-sm'><thead className='sticky top-0 bg-white'><tr><th className='sticky left-0 z-10 bg-white text-left'>Account</th>{months.map(m=><th key={m} className='text-right'>{m}</th>)}</tr></thead><tbody>{SECTION_BY_ACCOUNT.map((section)=><Fragment key={section.title}><tr className='bg-slate-100/80'><td colSpan={months.length+1} className='px-2 py-2 text-xs font-semibold uppercase tracking-wide text-slate-600'>{section.title}</td></tr>{section.keys.map((key)=>{const row=rows.find((r:any)=>r.accountCode===key); if(!row)return null; return <tr key={row.accountCode} className={emphasize(row.accountCode)}><td className='sticky left-0 bg-white pl-4'>{row.accountName}</td>{row.cells.map((c:any)=>{const v=Number(c.amount??0);return <td key={c.yearMonth} className={`text-right ${v<0?'text-rose-600':''}`}>{fmt(v)}</td>})}</tr>})}</Fragment>)}</tbody></table></div>}
+  <FPNAInterpretationCard items={fpnaInterpretation} />
   </section>
 }

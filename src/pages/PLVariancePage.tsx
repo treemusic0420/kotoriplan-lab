@@ -3,6 +3,7 @@ import { listDimensions, listDimensionValues } from '../features/dimension/api/d
 import { accountMeta, aggregatePlVariance } from '../features/pl/api/plFactRepository'
 import type { CompareType } from '../features/pl/model/types'
 import { LearningNotes } from '../shared/LearningNotes'
+import { FPNAInterpretationCard } from '../shared/FPNAInterpretationCard'
 import { BaseCompareLegend } from '../shared/ui/BaseCompareLegend'
 
 const months = Array.from({ length: 12 }, (_, idx) => ({ value: idx + 1, label: `2026-${String(idx + 1).padStart(2, '0')}` }))
@@ -51,6 +52,13 @@ export function PLVariancePage() {
     const op = f('operating_profit')
     return { rev: f('total_revenue')?.variance ?? 0, gp: f('gross_profit')?.variance ?? 0, op: op?.variance ?? 0, opRate: op?.varianceRate ?? null }
   }, [data])
+
+  const fpnaInterpretation = useMemo(() => [
+    card.rev >= 0 ? 'Revenue variance is favorable and supports profit delivery.' : 'Revenue variance is unfavorable and needs commercial explanation.',
+    card.gp >= 0 ? 'Gross profit is moving in the right direction.' : 'Gross profit pressure suggests pricing, mix, or variable cost issues.',
+    card.op >= 0 ? 'Operating profit variance is favorable after cost impacts.' : 'Operating profit variance is unfavorable and requires corrective action.',
+    card.opRate !== null && Math.abs(card.opRate) > 0.1 ? 'Variance is material enough to escalate in the review narrative.' : 'Variance appears moderate; validate whether it is recurring or one-time.',
+  ], [card])
 
   const compareTypeOptions = [
     { value: 'actual_vs_budget', label: 'Actual vs Budget' },
@@ -102,5 +110,6 @@ export function PLVariancePage() {
     {data && data.rawCount > 0 && (!data.hasBase || !data.hasCompare) && <p className='mt-3 text-sm text-slate-600'>No data found for selected comparison.</p>}
 
     {data?.lineItems?.length > 0 && <div className='mt-4 overflow-x-auto'><table className='min-w-[960px] text-sm'><thead><tr><th className='text-left'>Account</th><th className='text-right'>(B) {data.compareLabel}</th><th className='text-right'>(A) {data.baseLabel}</th><th className='text-right'>Variance: (B) - (A)</th><th className='text-right'>Variance %</th><th className='text-right'>F/U</th></tr></thead><tbody>{SECTION_BY_ACCOUNT.map((section) => <Fragment key={section.title}><tr className='bg-slate-100/80'><td colSpan={6} className='px-2 py-2 text-xs font-semibold tracking-wide text-slate-600'>{section.title}</td></tr>{section.keys.map((k) => { const r = data.lineItems.find((x: any) => x.accountKey === k); if (!r) return null; return <tr key={k} className={emphasize(k)}><td className='pl-4'>{r.accountName}</td><td className='text-right'>{fmtAmount(r.compareAmount)}</td><td className='text-right'>{fmtAmount(r.baseAmount)}</td><td className='text-right'>{fmtAmount(r.variance, true)}</td><td className='text-right'>{fmtRate(r.varianceRate)}</td><td className='text-right'><span className='rounded border px-2 py-0.5 text-xs'>{judge(k, r.variance)}</span></td></tr> })}</Fragment>)}</tbody></table></div>}
+  <FPNAInterpretationCard items={fpnaInterpretation} />
   </section>
 }

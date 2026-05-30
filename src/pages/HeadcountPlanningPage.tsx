@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { LearningNotes } from '../shared/LearningNotes'
+import { FPNAInterpretationCard } from '../shared/FPNAInterpretationCard'
 
 type WorkforceInputs = {
   currentHeadcount: number
@@ -136,6 +137,13 @@ export function HeadcountPlanningPage() {
     { label: 'Base Plan', description: 'Current workforce inputs', metrics },
     { label: 'Aggressive Hiring', description: 'Planned hires × 1.5', metrics: calculateMetrics(inputs, inputs.plannedNewHires * 1.5) },
   ], [inputs, metrics])
+
+  const fpnaInterpretation = useMemo(() => [
+    metrics.operatingProfit >= 0 ? 'Hiring plan remains profitable after workforce costs.' : 'Hiring plan is creating operating losses.',
+    metrics.workforceCostRatio !== null && metrics.workforceCostRatio <= 0.35 ? 'Workforce cost ratio is manageable.' : 'Workforce cost ratio is becoming a margin constraint.',
+    metrics.endingHeadcount > inputs.currentHeadcount ? 'Capacity is being added through net headcount growth.' : 'Headcount is flat or declining, so delivery capacity may tighten.',
+    inputs.vacancyDelayMonths <= 2 ? 'Vacancy delay is short enough to support execution timing.' : 'Vacancy delay may postpone productivity and revenue realization.',
+  ], [inputs.currentHeadcount, inputs.vacancyDelayMonths, metrics])
 
   const insights = useMemo(() => {
     const items: string[] = []
@@ -322,6 +330,7 @@ export function HeadcountPlanningPage() {
           ))}
         </ol>
       </article>
+    <FPNAInterpretationCard items={fpnaInterpretation} />
     </section>
   )
 }

@@ -4,6 +4,7 @@ import { listDimensions, listDimensionValues } from '../features/dimension/api/d
 import { fetchPlBridge } from '../features/pl/api/plBridgeRepository'
 import type { CompareType } from '../features/pl/model/types'
 import { LearningNotes } from '../shared/LearningNotes'
+import { FPNAInterpretationCard } from '../shared/FPNAInterpretationCard'
 
 const months = Array.from({ length: 12 }, (_, idx) => ({ value: idx + 1, label: `2026-${String(idx + 1).padStart(2, '0')}` }))
 const compareTypeOptions: Array<{ value: CompareType; label: string }> = [
@@ -61,6 +62,25 @@ export function PLBridgePage() {
     { name: 'Fixed Cost Impact', amount: data?.fixedCostImpact ?? 0 },
     { name: '(B) Compare OP', amount: data?.compareOperatingProfit ?? 0 }
   ]), [data])
+
+  const fpnaInterpretation = useMemo(() => {
+    const revenueImpact = data?.revenueImpact ?? 0
+    const variableCostImpact = data?.variableCostImpact ?? 0
+    const fixedCostImpact = data?.fixedCostImpact ?? 0
+    const totalVariance = data?.actualTotalVariance ?? 0
+    const biggestDriver = [
+      { label: 'revenue', value: revenueImpact },
+      { label: 'variable cost', value: variableCostImpact },
+      { label: 'fixed cost', value: fixedCostImpact },
+    ].sort((a, b) => Math.abs(b.value) - Math.abs(a.value))[0]
+
+    return [
+      totalVariance >= 0 ? 'Operating profit bridge ends above the base case.' : 'Operating profit bridge ends below the base case.',
+      revenueImpact >= 0 ? 'Revenue movement is contributing positively to the bridge.' : 'Revenue movement is reducing the profit bridge.',
+      variableCostImpact + fixedCostImpact >= 0 ? 'Cost movements are helping protect profit.' : 'Cost movements are diluting the revenue impact.',
+      `The largest bridge driver is ${biggestDriver.label}, so management discussion should start there.`,
+    ]
+  }, [data])
 
   return <section className='rounded-xl bg-white p-6 shadow-sm'>
     <h2 className='text-lg font-medium'>PL Bridge</h2>
@@ -124,5 +144,6 @@ export function PLBridgePage() {
         </ResponsiveContainer>
       </div>
     </div>
+  <FPNAInterpretationCard items={fpnaInterpretation} />
   </section>
 }

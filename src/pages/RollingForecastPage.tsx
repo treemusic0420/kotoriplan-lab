@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { LearningNotes } from '../shared/LearningNotes'
+import { FPNAInterpretationCard } from '../shared/FPNAInterpretationCard'
 
 type ForecastMonth = {
   month: number
@@ -102,6 +103,13 @@ export function RollingForecastPage() {
       forecastVariance,
     }
   }, [actualThroughMonth, monthlyForecast])
+
+  const fpnaInterpretation = useMemo(() => [
+    metrics.forecastVariance >= 0 ? 'Latest forecast is outperforming the original budget.' : 'Latest forecast is below budget and needs mitigation.',
+    metrics.fullYearOperatingProfit >= 0 ? 'Full-year profitability remains positive.' : 'Full-year profitability is at risk.',
+    metrics.remainingForecast > metrics.actualYtd ? 'A significant portion of the year still depends on forecast assumptions.' : 'Actual performance now anchors most of the full-year outlook.',
+    metrics.remainingOperatingProfit >= 0 ? 'Remaining months are expected to add profit.' : 'Remaining months are expected to dilute profit.',
+  ], [metrics])
 
   const revisionInsights = useMemo(() => {
     const insights: string[] = []
@@ -280,6 +288,7 @@ export function RollingForecastPage() {
           <li>Step 4: Explain changes using variance and drivers</li>
         </ol>
       </article>
+    <FPNAInterpretationCard items={fpnaInterpretation} />
     </section>
   )
 }
