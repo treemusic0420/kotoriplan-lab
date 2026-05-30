@@ -19,6 +19,7 @@ import { SensitivityAnalysisPage } from '../../pages/SensitivityAnalysisPage'
 import { BreakEvenAnalysisPage } from '../../pages/BreakEvenAnalysisPage'
 import { RollingForecastPage } from '../../pages/RollingForecastPage'
 import { HeadcountPlanningPage } from '../../pages/HeadcountPlanningPage'
+import { CapacityPlanningPage } from '../../pages/CapacityPlanningPage'
 import { RequireAuth } from '../../features/auth/RequireAuth'
 
 export function AppRouter() {
@@ -47,6 +48,7 @@ export function AppRouter() {
         <Route path="/drivers/break-even" element={<RequireAuth><BreakEvenAnalysisPage /></RequireAuth>} />
         <Route path="/forecast/rolling" element={<RequireAuth><RollingForecastPage /></RequireAuth>} />
         <Route path="/planning/headcount" element={<RequireAuth><HeadcountPlanningPage /></RequireAuth>} />
+        <Route path="/planning/capacity" element={<RequireAuth><CapacityPlanningPage /></RequireAuth>} />
       </Routes>
     </AppShell>
   )
