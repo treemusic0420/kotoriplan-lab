@@ -24,6 +24,7 @@ import { CapExPlanningPage } from '../../pages/CapExPlanningPage'
 import { InvestmentPortfolioPlanningPage } from '../../pages/InvestmentPortfolioPlanningPage'
 import { LongRangePlanningPage } from '../../pages/LongRangePlanningPage'
 import { ScenarioPlanningPage } from '../../pages/ScenarioPlanningPage'
+import { StrategicDriverTreePage } from '../../pages/StrategicDriverTreePage'
 import { RequireAuth } from '../../features/auth/RequireAuth'
 
 export function AppRouter() {
@@ -57,6 +58,7 @@ export function AppRouter() {
         <Route path="/planning/investment-portfolio" element={<RequireAuth><InvestmentPortfolioPlanningPage /></RequireAuth>} />
         <Route path="/planning/long-range" element={<RequireAuth><LongRangePlanningPage /></RequireAuth>} />
         <Route path="/planning/scenario-planning" element={<RequireAuth><ScenarioPlanningPage /></RequireAuth>} />
+        <Route path="/planning/strategic-driver-tree" element={<RequireAuth><StrategicDriverTreePage /></RequireAuth>} />
       </Routes>
     </AppShell>
   )
