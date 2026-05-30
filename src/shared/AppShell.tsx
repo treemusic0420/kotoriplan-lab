@@ -20,6 +20,7 @@ const links = [
   { to: '/forecast/rolling', label: 'Rolling Forecast' },
   { to: '/planning/headcount', label: 'Headcount Planning' },
   { to: '/planning/capacity', label: 'Capacity Planning' },
+  { to: '/planning/capex', label: 'CapEx Planning' },
   { to: '/learning-path', label: 'Learning Path' },
 ]
 
