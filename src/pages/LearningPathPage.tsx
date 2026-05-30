@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
+import { resetCompletedModules, useCompletedModules } from '../shared/learningProgress'
 
 type LearningModule = {
+  id: string
   title: string
   path: string
 }
@@ -24,8 +26,8 @@ const recommendedJourney: LearningJourneyStep[] = [
     title: 'Foundations',
     description: 'Understand what drives revenue, cost, and profit.',
     modules: [
-      { title: 'Driver Planning', path: '/drivers' },
-      { title: 'Variance Drivers', path: '/pl/variance-drivers' }
+      { id: 'driver-planning', title: 'Driver Planning', path: '/drivers' },
+      { id: 'variance-drivers', title: 'Variance Drivers', path: '/pl/variance-drivers' }
     ]
   },
   {
@@ -33,11 +35,11 @@ const recommendedJourney: LearningJourneyStep[] = [
     title: 'Profitability Analysis',
     description: 'Learn how operational drivers create profit.',
     modules: [
-      { title: 'PL View', path: '/pl' },
-      { title: 'PL by Dimension', path: '/pl/by-dimension' },
-      { title: 'PL Variance', path: '/pl/variance' },
-      { title: 'PL Bridge', path: '/pl/bridge' },
-      { title: 'Ratio Analysis', path: '/pl/ratios' }
+      { id: 'pl-view', title: 'PL View', path: '/pl' },
+      { id: 'pl-by-dimension', title: 'PL by Dimension', path: '/pl/by-dimension' },
+      { id: 'pl-variance', title: 'PL Variance', path: '/pl/variance' },
+      { id: 'pl-bridge', title: 'PL Bridge', path: '/pl/bridge' },
+      { id: 'ratio-analysis', title: 'Ratio Analysis', path: '/pl/ratios' }
     ]
   },
   {
@@ -45,9 +47,9 @@ const recommendedJourney: LearningJourneyStep[] = [
     title: 'Operational Planning',
     description: 'Connect workforce, capacity, and investment decisions.',
     modules: [
-      { title: 'Headcount Planning', path: '/planning/headcount' },
-      { title: 'Capacity Planning', path: '/planning/capacity' },
-      { title: 'CapEx Planning', path: '/planning/capex' }
+      { id: 'headcount-planning', title: 'Headcount Planning', path: '/planning/headcount' },
+      { id: 'capacity-planning', title: 'Capacity Planning', path: '/planning/capacity' },
+      { id: 'capex-planning', title: 'CapEx Planning', path: '/planning/capex' }
     ]
   },
   {
@@ -55,10 +57,10 @@ const recommendedJourney: LearningJourneyStep[] = [
     title: 'Forecasting & Scenarios',
     description: 'Evaluate uncertainty and future outcomes.',
     modules: [
-      { title: 'Rolling Forecast', path: '/forecast/rolling' },
-      { title: 'Sensitivity Analysis', path: '/drivers/sensitivity' },
-      { title: 'Break-even Analysis', path: '/drivers/break-even' },
-      { title: 'Scenario Planning', path: '/planning/scenario-planning' }
+      { id: 'rolling-forecast', title: 'Rolling Forecast', path: '/forecast/rolling' },
+      { id: 'sensitivity-analysis', title: 'Sensitivity Analysis', path: '/drivers/sensitivity' },
+      { id: 'break-even-analysis', title: 'Break-even Analysis', path: '/drivers/break-even' },
+      { id: 'scenario-planning', title: 'Scenario Planning', path: '/planning/scenario-planning' }
     ]
   },
   {
@@ -66,9 +68,9 @@ const recommendedJourney: LearningJourneyStep[] = [
     title: 'Strategic Planning',
     description: 'Translate strategy into financial outcomes.',
     modules: [
-      { title: 'Investment Portfolio Planning', path: '/planning/investment-portfolio' },
-      { title: 'Long Range Planning', path: '/planning/long-range' },
-      { title: 'Strategic Initiative Planning', path: '/planning/strategic-initiative' }
+      { id: 'investment-portfolio-planning', title: 'Investment Portfolio Planning', path: '/planning/investment-portfolio' },
+      { id: 'long-range-planning', title: 'Long Range Planning', path: '/planning/long-range' },
+      { id: 'strategic-initiative-planning', title: 'Strategic Initiative Planning', path: '/planning/strategic-initiative' }
     ]
   },
   {
@@ -76,82 +78,76 @@ const recommendedJourney: LearningJourneyStep[] = [
     title: 'Enterprise Integration',
     description: 'Connect profit, cash flow, balance sheet, and strategy into one financial model.',
     modules: [
-      { title: 'Strategic Driver Tree', path: '/planning/strategic-driver-tree' },
-      { title: 'Cash Flow Planning', path: '/planning/cash-flow' },
-      { title: 'Balance Sheet Planning', path: '/planning/balance-sheet' }
+      { id: 'strategic-driver-tree', title: 'Strategic Driver Tree', path: '/planning/strategic-driver-tree' },
+      { id: 'cash-flow-planning', title: 'Cash Flow Planning', path: '/planning/cash-flow' },
+      { id: 'balance-sheet-planning', title: 'Balance Sheet Planning', path: '/planning/balance-sheet' }
     ]
   }
 ]
-
-const completedModuleTitles = new Set([
-  'Driver Planning',
-  'Variance Drivers',
-  'PL View'
-])
 
 const capabilityFlow: CapabilityStage[] = [
   {
     title: 'Drivers',
     businessQuestion: 'What creates revenue, cost, and business performance?',
     modules: [
-      { title: 'Driver Planning', path: '/drivers' },
-      { title: 'Variance Drivers', path: '/pl/variance-drivers' }
+      { id: 'driver-planning', title: 'Driver Planning', path: '/drivers' },
+      { id: 'variance-drivers', title: 'Variance Drivers', path: '/pl/variance-drivers' }
     ]
   },
   {
     title: 'Revenue & Margin',
     businessQuestion: 'How do operational drivers become profit?',
     modules: [
-      { title: 'PL View', path: '/pl' },
-      { title: 'PL by Dimension', path: '/pl/by-dimension' },
-      { title: 'PL Variance', path: '/pl/variance' },
-      { title: 'PL Bridge', path: '/pl/bridge' },
-      { title: 'Ratio Analysis', path: '/pl/ratios' }
+      { id: 'pl-view', title: 'PL View', path: '/pl' },
+      { id: 'pl-by-dimension', title: 'PL by Dimension', path: '/pl/by-dimension' },
+      { id: 'pl-variance', title: 'PL Variance', path: '/pl/variance' },
+      { id: 'pl-bridge', title: 'PL Bridge', path: '/pl/bridge' },
+      { id: 'ratio-analysis', title: 'Ratio Analysis', path: '/pl/ratios' }
     ]
   },
   {
     title: 'Workforce & Capacity',
     businessQuestion: 'What resources are required to support growth?',
     modules: [
-      { title: 'Headcount Planning', path: '/planning/headcount' },
-      { title: 'Capacity Planning', path: '/planning/capacity' }
+      { id: 'headcount-planning', title: 'Headcount Planning', path: '/planning/headcount' },
+      { id: 'capacity-planning', title: 'Capacity Planning', path: '/planning/capacity' }
     ]
   },
   {
     title: 'Investment',
     businessQuestion: 'Where should capital be allocated?',
     modules: [
-      { title: 'CapEx Planning', path: '/planning/capex' },
-      { title: 'Investment Portfolio Planning', path: '/planning/investment-portfolio' }
+      { id: 'capex-planning', title: 'CapEx Planning', path: '/planning/capex' },
+      { id: 'investment-portfolio-planning', title: 'Investment Portfolio Planning', path: '/planning/investment-portfolio' }
     ]
   },
   {
     title: 'Forecasting',
     businessQuestion: 'What happens if assumptions change?',
     modules: [
-      { title: 'Rolling Forecast', path: '/forecast/rolling' },
-      { title: 'Sensitivity Analysis', path: '/drivers/sensitivity' },
-      { title: 'Break-even Analysis', path: '/drivers/break-even' },
-      { title: 'Scenario Planning', path: '/planning/scenario-planning' }
+      { id: 'rolling-forecast', title: 'Rolling Forecast', path: '/forecast/rolling' },
+      { id: 'sensitivity-analysis', title: 'Sensitivity Analysis', path: '/drivers/sensitivity' },
+      { id: 'break-even-analysis', title: 'Break-even Analysis', path: '/drivers/break-even' },
+      { id: 'scenario-planning', title: 'Scenario Planning', path: '/planning/scenario-planning' }
     ]
   },
   {
     title: 'Cash Flow',
     businessQuestion: 'Why does profit not equal cash?',
-    modules: [{ title: 'Cash Flow Planning', path: '/planning/cash-flow' }]
+    modules: [{ id: 'cash-flow-planning', title: 'Cash Flow Planning', path: '/planning/cash-flow' }]
   },
   {
     title: 'Balance Sheet',
     businessQuestion: 'Where does cash accumulate and create financial strength?',
-    modules: [{ title: 'Balance Sheet Planning', path: '/planning/balance-sheet' }]
+    modules: [{ id: 'balance-sheet-planning', title: 'Balance Sheet Planning', path: '/planning/balance-sheet' }]
   },
   {
     title: 'Enterprise Strategy',
     businessQuestion: 'Which drivers create long-term enterprise value?',
     modules: [
-      { title: 'Strategic Initiative Planning', path: '/planning/strategic-initiative' },
-      { title: 'Strategic Driver Tree', path: '/planning/strategic-driver-tree' },
-      { title: 'Long Range Planning', path: '/planning/long-range' }
+      { id: 'strategic-initiative-planning', title: 'Strategic Initiative Planning', path: '/planning/strategic-initiative' },
+      { id: 'strategic-driver-tree', title: 'Strategic Driver Tree', path: '/planning/strategic-driver-tree' },
+      { id: 'long-range-planning', title: 'Long Range Planning', path: '/planning/long-range' }
     ]
   }
 ]
@@ -189,13 +185,16 @@ const actualFpAndAResponsibilities = [
 ]
 
 const totalModuleCount = recommendedJourney.reduce((sum, step) => sum + step.modules.length, 0)
-const completedModuleCount = recommendedJourney.reduce(
-  (sum, step) => sum + step.modules.filter((module) => completedModuleTitles.has(module.title)).length,
-  0
-)
-const overallCompletionPercent = Math.round((completedModuleCount / totalModuleCount) * 100)
 
 export function LearningPathPage() {
+  const completedModules = useCompletedModules()
+  const completedModuleIds = new Set(completedModules)
+  const completedModuleCount = recommendedJourney.reduce(
+    (sum, step) => sum + step.modules.filter((module) => completedModuleIds.has(module.id)).length,
+    0
+  )
+  const overallCompletionPercent = totalModuleCount > 0 ? Math.round((completedModuleCount / totalModuleCount) * 100) : 0
+
   return (
     <section className='space-y-8'>
       <div className='overflow-hidden rounded-3xl bg-slate-950 text-white shadow-sm'>
@@ -208,11 +207,20 @@ export function LearningPathPage() {
             </p>
           </div>
           <div className='rounded-2xl border border-white/10 bg-white/10 p-5'>
-            <p className='text-xs font-semibold uppercase tracking-[0.25em] text-cyan-200'>Journey Progress</p>
+            <div className='flex items-center justify-between gap-3'>
+              <p className='text-xs font-semibold uppercase tracking-[0.25em] text-cyan-200'>Journey Progress</p>
+              <button
+                type='button'
+                onClick={resetCompletedModules}
+                className='rounded-full border border-white/10 px-2.5 py-1 text-[11px] font-semibold text-slate-300 transition hover:border-white/25 hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/70 focus:ring-offset-2 focus:ring-offset-slate-950'
+              >
+                Reset Progress
+              </button>
+            </div>
             <div className='mt-4 flex flex-wrap items-end justify-between gap-3'>
               <div>
                 <p className='text-4xl font-bold'>{completedModuleCount}/{totalModuleCount}</p>
-                <p className='mt-2 text-sm text-slate-200'>completed modules in this local demo calculation</p>
+                <p className='mt-2 text-sm text-slate-200'>completed modules saved on this device</p>
               </div>
               <span className='rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-cyan-100'>{overallCompletionPercent}% complete</span>
             </div>
@@ -221,7 +229,7 @@ export function LearningPathPage() {
             </div>
             <div className='mt-5 space-y-3 border-t border-white/10 pt-5'>
               {recommendedJourney.map((step) => {
-                const completedCount = step.modules.filter((module) => completedModuleTitles.has(module.title)).length
+                const completedCount = step.modules.filter((module) => completedModuleIds.has(module.id)).length
                 const completionPercent = Math.round((completedCount / step.modules.length) * 100)
 
                 return (
@@ -252,7 +260,7 @@ export function LearningPathPage() {
 
         <div className='grid gap-5 lg:grid-cols-2'>
           {recommendedJourney.map((step) => {
-            const completedCount = step.modules.filter((module) => completedModuleTitles.has(module.title)).length
+            const completedCount = step.modules.filter((module) => completedModuleIds.has(module.id)).length
             const completionPercent = Math.round((completedCount / step.modules.length) * 100)
 
             return (
@@ -279,7 +287,7 @@ export function LearningPathPage() {
 
                 <div className='mt-5 grid flex-1 gap-2 sm:grid-cols-2'>
                   {step.modules.map((module) => {
-                    const isCompleted = completedModuleTitles.has(module.title)
+                    const isCompleted = completedModuleIds.has(module.id)
 
                     return (
                       <Link
