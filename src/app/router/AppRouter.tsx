@@ -21,6 +21,7 @@ import { RollingForecastPage } from '../../pages/RollingForecastPage'
 import { HeadcountPlanningPage } from '../../pages/HeadcountPlanningPage'
 import { CapacityPlanningPage } from '../../pages/CapacityPlanningPage'
 import { CapExPlanningPage } from '../../pages/CapExPlanningPage'
+import { InvestmentPortfolioPlanningPage } from '../../pages/InvestmentPortfolioPlanningPage'
 import { RequireAuth } from '../../features/auth/RequireAuth'
 
 export function AppRouter() {
@@ -51,6 +52,7 @@ export function AppRouter() {
         <Route path="/planning/headcount" element={<RequireAuth><HeadcountPlanningPage /></RequireAuth>} />
         <Route path="/planning/capacity" element={<RequireAuth><CapacityPlanningPage /></RequireAuth>} />
         <Route path="/planning/capex" element={<RequireAuth><CapExPlanningPage /></RequireAuth>} />
+        <Route path="/planning/investment-portfolio" element={<RequireAuth><InvestmentPortfolioPlanningPage /></RequireAuth>} />
       </Routes>
     </AppShell>
   )

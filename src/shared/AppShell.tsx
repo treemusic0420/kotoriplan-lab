@@ -21,6 +21,7 @@ const links = [
   { to: '/planning/headcount', label: 'Headcount Planning' },
   { to: '/planning/capacity', label: 'Capacity Planning' },
   { to: '/planning/capex', label: 'CapEx Planning' },
+  { to: '/planning/investment-portfolio', label: 'Investment Portfolio Planning' },
   { to: '/learning-path', label: 'Learning Path' },
 ]
 
