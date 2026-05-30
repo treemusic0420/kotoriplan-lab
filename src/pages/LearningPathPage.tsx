@@ -184,7 +184,13 @@ const actualFpAndAResponsibilities = [
   'how financial resources create strategic options'
 ]
 
-const totalModuleCount = recommendedJourney.reduce((sum, step) => sum + step.modules.length, 0)
+const journeyModules = recommendedJourney.flatMap((step) => step.modules)
+const totalModuleCount = journeyModules.length
+const completedJourneyFallbackModule: LearningModule = {
+  id: 'strategic-driver-tree-review',
+  title: 'Strategic Driver Tree',
+  path: '/planning/strategic-driver-tree'
+}
 
 export function LearningPathPage() {
   const completedModules = useCompletedModules()
@@ -194,6 +200,8 @@ export function LearningPathPage() {
     0
   )
   const overallCompletionPercent = totalModuleCount > 0 ? Math.round((completedModuleCount / totalModuleCount) * 100) : 0
+  const nextRecommendedModule = journeyModules.find((module) => !completedModuleIds.has(module.id)) ?? completedJourneyFallbackModule
+  const nextModuleButtonLabel = completedModuleCount === totalModuleCount ? 'Review Strategic Driver Tree' : 'Start Next Module'
 
   return (
     <section className='space-y-8'>
@@ -226,6 +234,16 @@ export function LearningPathPage() {
             </div>
             <div className='mt-5 h-2 rounded-full bg-white/15'>
               <div className='h-2 rounded-full bg-cyan-300' style={{ width: `${overallCompletionPercent}%` }} />
+            </div>
+            <div className='mt-5 rounded-2xl border border-cyan-300/30 bg-cyan-300/10 p-4 shadow-lg shadow-cyan-950/20'>
+              <p className='text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-100'>Next recommended:</p>
+              <p className='mt-1 text-sm font-semibold text-white'>{nextRecommendedModule.title}</p>
+              <Link
+                to={nextRecommendedModule.path}
+                className='mt-4 flex w-full items-center justify-center rounded-full bg-cyan-300 px-4 py-3 text-sm font-bold text-slate-950 shadow-sm transition hover:-translate-y-0.5 hover:bg-cyan-200 focus:outline-none focus:ring-2 focus:ring-cyan-100 focus:ring-offset-2 focus:ring-offset-slate-950'
+              >
+                {nextModuleButtonLabel}
+              </Link>
             </div>
             <div className='mt-5 space-y-3 border-t border-white/10 pt-5'>
               {recommendedJourney.map((step) => {
