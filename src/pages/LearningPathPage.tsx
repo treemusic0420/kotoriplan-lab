@@ -29,6 +29,7 @@ const journeyQuestions = [
   'Why Capacity Matters',
   'Why Investments Matter',
   'How Multi-Year Plans Work',
+  'How Cash Becomes Financial Position',
   'How Executives Make Decisions'
 ]
 
@@ -134,6 +135,22 @@ const curriculumStages: CurriculumStage[] = [
         whyQuestion: 'What if the future is better or worse than plan?',
         learn: ['Best', 'Base', 'Worst'],
         outcome: 'Prepare for uncertainty'
+      },
+      {
+        step: 10,
+        title: 'Cash Flow Planning',
+        path: '/planning/cash-flow',
+        whyQuestion: 'Will the business have enough cash?',
+        learn: ['Operating Cash Flow', 'Free Cash Flow', 'Cash Runway'],
+        outcome: 'Connect profit to liquidity'
+      },
+      {
+        step: 11,
+        title: 'Balance Sheet Planning',
+        path: '/planning/balance-sheet',
+        whyQuestion: 'How does cash flow become financial position?',
+        learn: ['Assets = Liabilities + Equity', 'Profit → Equity', 'Debt and Working Capital'],
+        outcome: 'Understand financial position'
       }
     ]
   },
@@ -144,7 +161,7 @@ const curriculumStages: CurriculumStage[] = [
     description: 'Finish with the executive-level models used to set targets and make trade-offs.',
     steps: [
       {
-        step: 10,
+        step: 12,
         title: 'Long Range Planning',
         path: '/planning/long-range',
         whyQuestion: 'How do multi-year plans work?',
@@ -152,7 +169,7 @@ const curriculumStages: CurriculumStage[] = [
         outcome: 'Build long-term plans'
       },
       {
-        step: 11,
+        step: 13,
         title: 'Strategic Initiative Planning',
         path: '/planning/strategic-initiative',
         whyQuestion: 'How does strategy become numbers?',
@@ -160,7 +177,7 @@ const curriculumStages: CurriculumStage[] = [
         outcome: 'Translate strategy into numbers'
       },
       {
-        step: 12,
+        step: 14,
         title: 'Strategic Driver Tree',
         path: '/planning/strategic-driver-tree',
         whyQuestion: 'How do executives make decisions across the whole system?',
@@ -175,8 +192,8 @@ const maturityLevels: MaturityLevel[] = [
   { level: 'Analyst', modules: ['Driver Planning', 'Variance Drivers', 'PL Bridge'] },
   { level: 'Senior Analyst', modules: ['Rolling Forecast', 'Headcount Planning'] },
   { level: 'Manager', modules: ['Capacity Planning', 'CapEx Planning'] },
-  { level: 'Director', modules: ['Investment Portfolio Planning', 'Scenario Planning'] },
-  { level: 'CFO', modules: ['Long Range Planning', 'Strategic Initiative Planning', 'Strategic Driver Tree'] }
+  { level: 'Director', modules: ['Investment Portfolio Planning', 'Scenario Planning', 'Cash Flow Planning'] },
+  { level: 'CFO', modules: ['Balance Sheet Planning', 'Long Range Planning', 'Strategic Initiative Planning', 'Strategic Driver Tree'] }
 ]
 
 export function LearningPathPage() {
@@ -191,7 +208,7 @@ export function LearningPathPage() {
           </p>
         </div>
 
-        <div className='grid gap-3 border-b border-slate-200 bg-slate-50 p-4 md:grid-cols-7'>
+        <div className='grid gap-3 border-b border-slate-200 bg-slate-50 p-4 md:grid-cols-8'>
           {journeyQuestions.map((question, index) => (
             <div key={question} className='relative rounded-xl border border-slate-200 bg-white p-3 text-center shadow-sm'>
               <div className='mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-cyan-100 text-xs font-bold text-cyan-800'>{index + 1}</div>
