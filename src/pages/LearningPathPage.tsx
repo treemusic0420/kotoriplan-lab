@@ -14,7 +14,8 @@ type LearningJourneyStep = {
 
 type CapabilityStage = {
   title: string
-  modules: string[]
+  businessQuestion: string
+  modules: LearningModule[]
 }
 
 const recommendedJourney: LearningJourneyStep[] = [
@@ -72,12 +73,12 @@ const recommendedJourney: LearningJourneyStep[] = [
   },
   {
     step: 6,
-    title: 'Enterprise View',
-    description: 'Connect P&L, Cash Flow, Balance Sheet, and Strategy.',
+    title: 'Enterprise Integration',
+    description: 'Connect profit, cash flow, balance sheet, and strategy into one financial model.',
     modules: [
+      { title: 'Strategic Driver Tree', path: '/planning/strategic-driver-tree' },
       { title: 'Cash Flow Planning', path: '/planning/cash-flow' },
-      { title: 'Balance Sheet Planning', path: '/planning/balance-sheet' },
-      { title: 'Strategic Driver Tree', path: '/planning/strategic-driver-tree' }
+      { title: 'Balance Sheet Planning', path: '/planning/balance-sheet' }
     ]
   }
 ]
@@ -91,35 +92,67 @@ const completedModuleTitles = new Set([
 const capabilityFlow: CapabilityStage[] = [
   {
     title: 'Drivers',
-    modules: ['Driver Planning', 'Variance Drivers']
+    businessQuestion: 'What creates revenue, cost, and business performance?',
+    modules: [
+      { title: 'Driver Planning', path: '/drivers' },
+      { title: 'Variance Drivers', path: '/pl/variance-drivers' }
+    ]
   },
   {
     title: 'Revenue & Margin',
-    modules: ['PL View', 'PL by Dimension', 'PL Variance', 'PL Bridge', 'Ratio Analysis']
+    businessQuestion: 'How do operational drivers become profit?',
+    modules: [
+      { title: 'PL View', path: '/pl' },
+      { title: 'PL by Dimension', path: '/pl/by-dimension' },
+      { title: 'PL Variance', path: '/pl/variance' },
+      { title: 'PL Bridge', path: '/pl/bridge' },
+      { title: 'Ratio Analysis', path: '/pl/ratios' }
+    ]
   },
   {
     title: 'Workforce & Capacity',
-    modules: ['Headcount Planning', 'Capacity Planning']
+    businessQuestion: 'What resources are required to support growth?',
+    modules: [
+      { title: 'Headcount Planning', path: '/planning/headcount' },
+      { title: 'Capacity Planning', path: '/planning/capacity' }
+    ]
   },
   {
     title: 'Investment',
-    modules: ['CapEx Planning', 'Investment Portfolio Planning']
+    businessQuestion: 'Where should capital be allocated?',
+    modules: [
+      { title: 'CapEx Planning', path: '/planning/capex' },
+      { title: 'Investment Portfolio Planning', path: '/planning/investment-portfolio' }
+    ]
   },
   {
     title: 'Forecasting',
-    modules: ['Rolling Forecast', 'Sensitivity Analysis', 'Break-even Analysis', 'Scenario Planning']
+    businessQuestion: 'What happens if assumptions change?',
+    modules: [
+      { title: 'Rolling Forecast', path: '/forecast/rolling' },
+      { title: 'Sensitivity Analysis', path: '/drivers/sensitivity' },
+      { title: 'Break-even Analysis', path: '/drivers/break-even' },
+      { title: 'Scenario Planning', path: '/planning/scenario-planning' }
+    ]
   },
   {
     title: 'Cash Flow',
-    modules: ['Cash Flow Planning']
+    businessQuestion: 'Why does profit not equal cash?',
+    modules: [{ title: 'Cash Flow Planning', path: '/planning/cash-flow' }]
   },
   {
     title: 'Balance Sheet',
-    modules: ['Balance Sheet Planning']
+    businessQuestion: 'Where does cash accumulate and create financial strength?',
+    modules: [{ title: 'Balance Sheet Planning', path: '/planning/balance-sheet' }]
   },
   {
     title: 'Enterprise Strategy',
-    modules: ['Strategic Initiative Planning', 'Strategic Driver Tree', 'Long Range Planning']
+    businessQuestion: 'Which drivers create long-term enterprise value?',
+    modules: [
+      { title: 'Strategic Initiative Planning', path: '/planning/strategic-initiative' },
+      { title: 'Strategic Driver Tree', path: '/planning/strategic-driver-tree' },
+      { title: 'Long Range Planning', path: '/planning/long-range' }
+    ]
   }
 ]
 
@@ -279,10 +312,16 @@ export function LearningPathPage() {
             <div key={capability.title} className='relative rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-slate-50 p-4'>
               <div className='mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-cyan-100 text-sm font-bold text-cyan-800'>{index + 1}</div>
               <p className='mt-3 text-center text-sm font-semibold leading-5 text-slate-900'>{capability.title}</p>
+              <p className='mt-2 text-center text-xs leading-5 text-slate-500'>{capability.businessQuestion}</p>
               <ul className='mt-4 space-y-2 text-left text-xs leading-5 text-slate-600'>
                 {capability.modules.map((module) => (
-                  <li key={module} className='rounded-lg border border-slate-100 bg-white px-2.5 py-2 font-medium shadow-sm'>
-                    {module}
+                  <li key={module.title}>
+                    <Link
+                      to={module.path}
+                      className='block rounded-lg border border-slate-100 bg-white px-2.5 py-2 font-medium shadow-sm transition hover:border-cyan-300 hover:bg-cyan-50 hover:text-cyan-900 focus:outline-none focus:ring-2 focus:ring-cyan-300 focus:ring-offset-2'
+                    >
+                      {module.title}
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -339,6 +378,7 @@ export function LearningPathPage() {
             ))}
           </ul>
           <p className='font-semibold text-white'>The goal is to support better business decisions.</p>
+          <p className='font-semibold text-cyan-100'>FP&A professionals connect operational decisions to financial outcomes and strategic choices.</p>
         </div>
       </section>
     </section>
