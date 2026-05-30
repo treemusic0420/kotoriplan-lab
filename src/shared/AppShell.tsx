@@ -22,6 +22,7 @@ const links = [
   { to: '/planning/capacity', label: 'Capacity Planning' },
   { to: '/planning/capex', label: 'CapEx Planning' },
   { to: '/planning/investment-portfolio', label: 'Investment Portfolio Planning' },
+  { to: '/planning/long-range', label: 'Long Range Planning' },
   { to: '/learning-path', label: 'Learning Path' },
 ]
 
