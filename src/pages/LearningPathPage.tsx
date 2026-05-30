@@ -12,6 +12,11 @@ type LearningJourneyStep = {
   modules: LearningModule[]
 }
 
+type CapabilityStage = {
+  title: string
+  modules: string[]
+}
+
 const recommendedJourney: LearningJourneyStep[] = [
   {
     step: 1,
@@ -83,15 +88,39 @@ const completedModuleTitles = new Set([
   'PL View'
 ])
 
-const capabilityFlow = [
-  'Drivers',
-  'Revenue & Margin',
-  'Workforce & Capacity',
-  'Investment',
-  'Forecasting',
-  'Cash Flow',
-  'Balance Sheet',
-  'Enterprise Strategy'
+const capabilityFlow: CapabilityStage[] = [
+  {
+    title: 'Drivers',
+    modules: ['Driver Planning', 'Variance Drivers']
+  },
+  {
+    title: 'Revenue & Margin',
+    modules: ['PL View', 'PL by Dimension', 'PL Variance', 'PL Bridge', 'Ratio Analysis']
+  },
+  {
+    title: 'Workforce & Capacity',
+    modules: ['Headcount Planning', 'Capacity Planning']
+  },
+  {
+    title: 'Investment',
+    modules: ['CapEx Planning', 'Investment Portfolio Planning']
+  },
+  {
+    title: 'Forecasting',
+    modules: ['Rolling Forecast', 'Sensitivity Analysis', 'Break-even Analysis', 'Scenario Planning']
+  },
+  {
+    title: 'Cash Flow',
+    modules: ['Cash Flow Planning']
+  },
+  {
+    title: 'Balance Sheet',
+    modules: ['Balance Sheet Planning']
+  },
+  {
+    title: 'Enterprise Strategy',
+    modules: ['Strategic Initiative Planning', 'Strategic Driver Tree', 'Long Range Planning']
+  }
 ]
 
 const explainableQuestions = [
@@ -106,17 +135,38 @@ const explainableQuestions = [
   'Which drivers create enterprise value?'
 ]
 
+const professionalMindsetPrinciples = [
+  'Revenue does not equal cash.',
+  'Profit does not equal value.',
+  'Growth consumes capacity.',
+  'Capacity requires investment.',
+  'Investment creates future cash flow.',
+  'Cash flow strengthens the balance sheet.',
+  'A stronger balance sheet creates strategic options.'
+]
+
+const actualFpAndAResponsibilities = [
+  'what drives revenue',
+  'what creates profit',
+  'what limits growth',
+  'where capital should be invested',
+  'how profit becomes cash',
+  'how cash strengthens the balance sheet',
+  'how financial resources create strategic options'
+]
+
 const totalModuleCount = recommendedJourney.reduce((sum, step) => sum + step.modules.length, 0)
 const completedModuleCount = recommendedJourney.reduce(
   (sum, step) => sum + step.modules.filter((module) => completedModuleTitles.has(module.title)).length,
   0
 )
+const overallCompletionPercent = Math.round((completedModuleCount / totalModuleCount) * 100)
 
 export function LearningPathPage() {
   return (
     <section className='space-y-8'>
       <div className='overflow-hidden rounded-3xl bg-slate-950 text-white shadow-sm'>
-        <div className='grid gap-8 p-6 md:grid-cols-[1.4fr_0.8fr] md:p-8'>
+        <div className='grid gap-8 p-6 md:grid-cols-[1.25fr_0.95fr] md:p-8'>
           <div>
             <p className='text-xs font-semibold uppercase tracking-[0.35em] text-cyan-300'>FP&A Learning Top Page</p>
             <h2 className='mt-4 text-3xl font-bold tracking-tight md:text-4xl'>Learning Path</h2>
@@ -126,13 +176,33 @@ export function LearningPathPage() {
           </div>
           <div className='rounded-2xl border border-white/10 bg-white/10 p-5'>
             <p className='text-xs font-semibold uppercase tracking-[0.25em] text-cyan-200'>Journey Progress</p>
-            <p className='mt-4 text-4xl font-bold'>{completedModuleCount}/{totalModuleCount}</p>
-            <p className='mt-2 text-sm text-slate-200'>completed modules in this local demo calculation</p>
+            <div className='mt-4 flex flex-wrap items-end justify-between gap-3'>
+              <div>
+                <p className='text-4xl font-bold'>{completedModuleCount}/{totalModuleCount}</p>
+                <p className='mt-2 text-sm text-slate-200'>completed modules in this local demo calculation</p>
+              </div>
+              <span className='rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-cyan-100'>{overallCompletionPercent}% complete</span>
+            </div>
             <div className='mt-5 h-2 rounded-full bg-white/15'>
-              <div
-                className='h-2 rounded-full bg-cyan-300'
-                style={{ width: `${Math.round((completedModuleCount / totalModuleCount) * 100)}%` }}
-              />
+              <div className='h-2 rounded-full bg-cyan-300' style={{ width: `${overallCompletionPercent}%` }} />
+            </div>
+            <div className='mt-5 space-y-3 border-t border-white/10 pt-5'>
+              {recommendedJourney.map((step) => {
+                const completedCount = step.modules.filter((module) => completedModuleTitles.has(module.title)).length
+                const completionPercent = Math.round((completedCount / step.modules.length) * 100)
+
+                return (
+                  <div key={step.title}>
+                    <div className='flex items-center justify-between gap-3 text-xs'>
+                      <span className='font-semibold text-slate-100'>{step.title}</span>
+                      <span className='font-semibold text-cyan-100'>{completedCount}/{step.modules.length}</span>
+                    </div>
+                    <div className='mt-1.5 h-1.5 rounded-full bg-white/10'>
+                      <div className='h-1.5 rounded-full bg-cyan-300' style={{ width: `${completionPercent}%` }} />
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </div>
         </div>
@@ -201,11 +271,21 @@ export function LearningPathPage() {
       <section className='rounded-2xl border border-slate-200 bg-white p-5 shadow-sm'>
         <p className='text-xs font-semibold uppercase tracking-[0.25em] text-cyan-700'>FP&A Capability Map</p>
         <h3 className='mt-2 text-2xl font-semibold text-slate-900'>How each capability flows into the next</h3>
-        <div className='mt-6 grid gap-3 xl:grid-cols-8'>
+        <p className='mt-2 max-w-3xl text-sm leading-6 text-slate-600'>
+          Each stage shows the modules that build that capability, making it easier to see where every lesson sits in the FP&A operating model.
+        </p>
+        <div className='mt-6 grid gap-4 xl:grid-cols-8'>
           {capabilityFlow.map((capability, index) => (
-            <div key={capability} className='relative rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-slate-50 p-4 text-center'>
+            <div key={capability.title} className='relative rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-slate-50 p-4'>
               <div className='mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-cyan-100 text-sm font-bold text-cyan-800'>{index + 1}</div>
-              <p className='mt-3 text-sm font-semibold leading-5 text-slate-900'>{capability}</p>
+              <p className='mt-3 text-center text-sm font-semibold leading-5 text-slate-900'>{capability.title}</p>
+              <ul className='mt-4 space-y-2 text-left text-xs leading-5 text-slate-600'>
+                {capability.modules.map((module) => (
+                  <li key={module} className='rounded-lg border border-slate-100 bg-white px-2.5 py-2 font-medium shadow-sm'>
+                    {module}
+                  </li>
+                ))}
+              </ul>
               {index < capabilityFlow.length - 1 && (
                 <>
                   <span className='absolute -right-3 top-1/2 hidden -translate-y-1/2 text-xl font-bold text-slate-300 xl:block'>→</span>
@@ -226,6 +306,39 @@ export function LearningPathPage() {
               {question}
             </div>
           ))}
+        </div>
+      </section>
+
+      <section className='rounded-2xl border border-slate-200 bg-white p-5 shadow-sm'>
+        <p className='text-xs font-semibold uppercase tracking-[0.25em] text-cyan-700'>FP&A Professional Mindset</p>
+        <h3 className='mt-2 text-2xl font-semibold text-slate-900'>Principles that connect operational decisions to enterprise value.</h3>
+        <div className='mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-7'>
+          {professionalMindsetPrinciples.map((principle, index) => (
+            <div key={principle} className='relative rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-sm'>
+              <div className='flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 text-xs font-bold text-white'>{index + 1}</div>
+              <p className='mt-4 text-sm font-semibold leading-6 text-slate-900'>{principle}</p>
+              {index < professionalMindsetPrinciples.length - 1 && (
+                <span className='absolute -bottom-4 left-1/2 -translate-x-1/2 text-xl font-bold text-slate-300 xl:-right-3 xl:bottom-auto xl:left-auto xl:top-1/2 xl:-translate-y-1/2 xl:translate-x-0'>↓</span>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className='rounded-3xl bg-slate-950 p-6 text-white shadow-sm md:p-8'>
+        <p className='text-xs font-semibold uppercase tracking-[0.25em] text-cyan-300'>Completion Message</p>
+        <h3 className='mt-3 text-2xl font-semibold'>What FP&A professionals actually do</h3>
+        <div className='mt-4 max-w-3xl space-y-4 text-sm leading-7 text-slate-200 md:text-base'>
+          <p>FP&A is not only reporting numbers.</p>
+          <p>It is the discipline of understanding:</p>
+          <ul className='grid gap-2 pl-5 sm:grid-cols-2'>
+            {actualFpAndAResponsibilities.map((responsibility) => (
+              <li key={responsibility} className='list-disc'>
+                {responsibility}
+              </li>
+            ))}
+          </ul>
+          <p className='font-semibold text-white'>The goal is to support better business decisions.</p>
         </div>
       </section>
     </section>
