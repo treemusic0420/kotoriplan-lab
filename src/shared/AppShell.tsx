@@ -1,6 +1,7 @@
 import { Link, matchPath, useLocation } from 'react-router-dom'
-import type { ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
 import { useAuth } from '../features/auth/AuthProvider'
+import { getLearningModuleIdForPath, markModuleCompleted } from './learningProgress'
 
 type NavLinkItem = {
   to: string
@@ -120,6 +121,14 @@ const groupButtonClassName = (isActive: boolean) =>
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth()
   const { pathname } = useLocation()
+
+  useEffect(() => {
+    const moduleId = getLearningModuleIdForPath(pathname)
+
+    if (user && moduleId) {
+      markModuleCompleted(moduleId)
+    }
+  }, [pathname, user])
 
   return (
     <div className="mx-auto min-h-screen max-w-6xl px-4 py-6">
