@@ -25,6 +25,7 @@ const links = [
   { to: '/planning/long-range', label: 'Long Range Planning' },
   { to: '/planning/scenario-planning', label: 'Scenario Planning' },
   { to: '/planning/cash-flow', label: 'Cash Flow Planning' },
+  { to: '/planning/balance-sheet', label: 'Balance Sheet Planning' },
   { to: '/planning/strategic-driver-tree', label: 'Strategic Driver Tree' },
   { to: '/planning/strategic-initiative', label: 'Strategic Initiative Planning' },
   { to: '/learning-path', label: 'Learning Path' },
